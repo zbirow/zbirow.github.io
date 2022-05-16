@@ -2,7 +2,7 @@ let employeeList = [];
 const container = document.querySelector('.container');
 const search = document.getElementById('search');
 //get data from server
-const fetchEmployee = fetch('https://randomuser.me/api/?results=12')
+const fetchEmployee = fetch('https://animeni.pl/')
 .then((response) => {
     return response.json();
 })
