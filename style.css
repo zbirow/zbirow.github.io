@@ -1,0 +1,156 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-size: 10px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #F5F5F5;
+}
+
+.header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+}
+
+.header h1{
+    font-size: 1.4em;
+}
+
+.header #search {
+    width: 300px;
+    height: 30px;
+    border: 2px solid rgba(0,0,0, 0.4);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.header #search:focus {
+    outline: none;
+}
+
+.container {
+    max-width: 1024px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: auto;
+}
+
+.employee {
+    display: grid;
+    background-color: #fff;
+    width: 300px;
+    grid-template-columns: 1fr 2fr;
+    margin: 10px auto;
+    font-size: 1.3em;
+    border: 1px solid rgba(0,0,0, 0.2);
+    border-radius: 5px;
+    padding: 10px 5px;
+}
+
+.employee:hover{
+    background-color: #F5F5F5
+}
+
+.employee img{
+    border-radius: 50%;
+    width: 100px;
+    padding-right: 10px;
+}
+.employee p{
+    font-weight: bold;
+}
+.employee span{
+    display: block;
+}
+
+.lightbox {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    font-size: 1.4em;
+}
+
+.lightbox-inside {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 300px;
+    margin: auto;
+    border-radius: 5px;
+    padding: 20px 5px;
+    background-color: #fff;
+    top: 50px;
+}
+
+.lightbox-inside img {
+    border-radius: 50%;
+}
+
+.lightbox-inside div {
+    width: 90%;
+    margin: auto;
+    text-align: center;
+}
+.lightbox-inside hr {
+    width: 80%;    
+}
+.lightbox-inside .nextArrow,
+.lightbox-inside .backArrow,
+.lightbox-inside .xMark {
+    position: absolute;
+    opacity: 0.5;
+}
+.lightbox-inside .xMark{
+    top: 5px;
+    left: 270px;
+}
+.lightbox-inside .nextArrow{
+    top: 50%;
+    right: 0;
+}
+
+.lightbox-inside .backArrow{
+    top: 50%;
+    left:0;
+}
+
+.lightbox-inside .xMark:hover,
+.lightbox-inside .nextArrow:hover,
+.lightbox-inside .backArrow:hover{
+    opacity: 1;
+}
+
+.lightbox-inside .nextArrow,
+.lightbox-inside .backArrow {
+    width: 30px;
+}
+
+
+
+
+@media (min-width: 768px){
+    .header {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .header h1 {
+        font-size: 1.6em;
+    }
+
+    .container{
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+}
