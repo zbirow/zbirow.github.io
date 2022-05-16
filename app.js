@@ -1,6 +1,6 @@
 let employeeList = [];
 const container = document.querySelector('.container');
-const search = document.getElementById('search');
+const search = document.getElementById('content');
 //get data from server
 const fetchEmployee = fetch('https://animeni.pl/')
 .then((response) => {
@@ -14,20 +14,17 @@ const fetchEmployee = fetch('https://animeni.pl/')
 function generateEmployeeHtml(arr){
     let htmlForContainer = '';
     arr.forEach( a => {
-        const picture = a.picture.large;
-        const name = `${a.name.first} ${a.name.last}`;
-        const username = a.login.username;
-        const email = a.email;
-        const city = a.location.city
-        const phone = a.phone;
-        const adress = `${a.location.street.name} ${a.location.street.number}, ${a.location.state} ${a.location.postcode}`;
-        employeeList.push({picture, name, username, email, city, phone, adress});
-        htmlForContainer += `<div class="employee">
+        const picture = img.ts-post-image wp-post-image attachment-medium_large size-medium_large lazyloaded;
+        const name = div.tt;
+        const epizode = span.epx;
+        const link = a.tip;
+        employeeList.push({picture, name, epizode, link});
+        htmlForContainer += `<div class="excstf">
             <img src='${picture}' alt='Picture of ${name}'>
             <div>
                 <p>${name}</p>
-                <span>${email}</span>
-                <span>${city}</span>
+                <span>${epizode}</span>
+                <span>${link}</span>
             </div>
         </div>`;
     });
@@ -76,12 +73,9 @@ function generateLightBox(i, lengthEmployee){
                 <img src='svg/next.svg' alt='next' class="nextArrow">
                 <img src='svg/back.svg' alt='back' class="backArrow">
                 <p><strong>${employeeList[i].name}</strong></p>
-                <p>${employeeList[i].username}</p>
-                <p>${employeeList[i].email}</p>
-                <p>${employeeList[i].city}</p>
-                <hr>
-                <p>${employeeList[i].phone}</p>
-                <p>${employeeList[i].adress}</p>
+                <p>${employeeList[i].name}</p>
+                <p>${employeeList[i].epizode}</p>
+                <p>${employeeList[i].link}</p>
             </div>
         </div>
     `;
