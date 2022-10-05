@@ -4,34 +4,36 @@
   <body>
     <h2>Witam na mojej Stronie</h2>
     <h2>Aktualnie Strona służy do testowania moich scriptów</h2>
-    <iframe src="https://ebd.cda.pl/620x395/12074733cf" width="620" id="frameId" height="395" style="border:none;" frameborder="0" scrolling="no" allowfullscreen="" name="v2">
-    </iframe>
-    <video id="voe-player" playsinline="" crossorigin="anonymous" data-poster="https://delivery-node-inaya.voe-network.net/i/01/08250/my5dktbrfbgk.jpg" width="940" height="529" src="blob:https://voe.sx/485d6bea-1e4d-4d77-a493-c3c5a00fa871">
-    </video>
-    <div id="container">
-          <video
-            controls
-            crossorigin
-            playsinline
-            data-poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg"
-            id="player">
-            <!-- Video files -->
-            <source
-              src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-576p.mp4"
-              type="video/mp4"
-              size="576"
-            />
-            <source
-              src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4"
-              type="video/mp4"
-              size="720"
-            />
-            <source
-              src="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4"
-              type="video/mp4"
-              size="1080"
-            />
-          </video>
-        </div>
+    <div class='vidcontainer'>
+   <select class='qualitypick' autocomplete='off'>
+      <option selected>fullHD</option>
+      <option>720p</option>
+      <option>360p</option>
+   </select>
+   <video controls preload>
+      <source label="fullHD" src="http://v.com/lorem.mp4" type="video/mp4">
+      <source label="720p"   src="http://v.com/ipsum.mp4" type="video/mp4" >
+      <source label="360p"   src="http://v.com/dolor.mp4" type="video/mp4">
+   </video>
+</div>
+    <script>$(document).ready(function(){
+   $('.qualitypick').change(function(){ 
+
+      //Have several videos in file, so have to navigate directly
+      video = $(this).parent().find("video");
+      
+      //Need access to DOM element for some functionality
+      videoDOM = video.get(0);
+
+      curtime = videoDOM.currentTime;  //Get Current Time of Video
+      source = video.find("source[label=" + $(this).textContent + "]"); //Copy Source
+
+      source.remove();                 //Remove the source from select
+      video.prepend(source);           //Prepend source on top of options
+      video.load();                    //Reload Video
+      videoDOM.currentTime = curtime;  //Continue from video's stop
+      videoDOM.play();                 //Resume video
+   })
+})</script>
   </body>
 </html>
