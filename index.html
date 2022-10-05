@@ -1,21 +1,5 @@
 <html>
   <head>
-  </head>
-  <body>
-    <h2>Witam na mojej Stronie</h2>
-    <h2>Aktualnie Strona służy do testowania moich scriptów P1</h2>
-    <div class='vidcontainer'>
-   <select class='qualitypick' autocomplete='off'>
-      <option selected>fullHD</option>
-      <option>720p</option>
-      <option>360p</option>
-   </select>
-   <video controls preload>
-      <source label="fullHD" src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-      <source label="720p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" >
-      <source label="360p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-   </video>
-</div>
     <script type="text/javascript"> 
       $(document).ready(function(){
    $('.qualitypick').change(function(){ 
@@ -36,5 +20,21 @@
       videoDOM.play();                 //Resume video
    })
 })</script>
+  </head>
+  <body>
+    <h2>Witam na mojej Stronie</h2>
+    <h2>Aktualnie Strona służy do testowania moich scriptów P1</h2>
+    <div class='vidcontainer'>
+   <select class='qualitypick' autocomplete='off'>
+      <option selected>fullHD</option>
+      <option>720p</option>
+      <option>360p</option>
+   </select>
+   <video controls preload>
+      <source label="fullHD" src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      <source label="720p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" >
+      <source label="360p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+   </video>
+</div>
   </body>
 </html>
