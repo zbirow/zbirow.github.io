@@ -16,5 +16,5 @@ $(document).ready(function() {
       videoDOM.currentTime = curtime;  //Continue from video's stop
       videoDOM.play();                 //Resume video
    })
-});
+})
 
