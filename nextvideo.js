@@ -1,5 +1,5 @@
 function nas() {
-  var clicks = document.getElementsByClassName('odc')[0].textContent;
+  var clicks = 1;
         clicks += 1;
         document.getElementsByClassName('odc').innerHTML = clicks;
     };
