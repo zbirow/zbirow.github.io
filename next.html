@@ -12,12 +12,12 @@
    <button onclick="nas()" type="button">Następny</button>
    <script type="text/javascript">
     
-    
+    var two = document.getElementsByClassName("dwa")[0].src;
     var odc = 1;
     function nas() {
         odc += 1;
         document.getElementsByClassName("odc")[0].innerHTML = odc;
-        let two = document.getElementsByClassName("dwa")[0].src;
+        
          console.log(two);
         document.getElementsByClassName("iframe")[0].src = two;
     };
