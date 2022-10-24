@@ -1,13 +1,24 @@
 <html>
 <head>
-<script type="text/javascript" src="/nextvideo.js"></script>
 </head>
 <body>
 <div class="video">
  <p>Odc: <a class="odc">1</a></p>
  <iframe class="iframe" src="https://ebd.cda.pl/620x395/1139317779"></iframe>
-  <div class="pop"><button onclick="pop()" type="button">Poprzedni</button></div>
-  <div class="nas"><button onclick="nas()" type="button">Następny</button></div>
+  <div class="pop">
+   <button onclick="pop()" type="button">Poprzedni</button>
+ </div>
+  <div class="nas">
+   <button onclick="nas()" type="button">Następny</button>
+   <script type="text/javascript">
+
+    var clicks = 1;
+    function nas() {
+        clicks += 1;
+        document.getElementsByClassName("odc").innerHTML = clicks;
+    };
+    </script>
+ </div>
 </div>
 <div class="next">
 <ul><li>
