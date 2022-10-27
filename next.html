@@ -1,11 +1,34 @@
 <html>
 <head>
  <script type="text/javascript" src="/nextvideo.js"></script>
+ <script>
+ function downloadImage() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://via.placeholder.com/150', true);
+  xhr.responseType = 'blob';
+  xhr.onload = function() {
+    var urlCreator = window.URL || window.webkitURL;
+    var imageUrl = urlCreator.createObjectURL(this.response);
+    var tag = document.createElement('a');
+    tag.href = imageUrl;
+    tag.target = '_blank';
+    tag.download = 'sample.png';
+    document.body.appendChild(tag);
+    tag.click();
+    document.body.removeChild(tag);
+  };
+  xhr.onerror = err => {
+    alert('Failed to download picture');
+  };
+  xhr.send();
+}
+ </script>
 </head>
 <body>
 <div class="video">
  <p>Odc: <a class="odc">1</a></p>
  <iframe class="iframe" src="https://ebd.cda.pl/620x395/1139317779"></iframe>
+ <button onclick="downloadImage()">Download Image</button>
   <div class="pop">
    <button onclick="pop()" type="button">Poprzedni</button>
  </div>
