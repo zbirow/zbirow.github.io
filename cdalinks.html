@@ -27,6 +27,17 @@
     }
   }
 </script>
+ <p id="copy">This is the copy string!</p>
+<button type="button" onclick="copyEvent('copy')">Copy</button>
+
+<script>
+    function copyEvent(id)
+    {
+        var str = document.getElementById(id);
+        window.getSelection().selectAllChildren(str);
+        document.execCommand("Copy")
+    }
+</script>
 <div class="row-clear" style="margin-top: 10px;">
 <div class="viewTiles">
 <div class="filter-folder-profil">
