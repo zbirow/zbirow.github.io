@@ -208,6 +208,20 @@ Dodał: <a class="link-gray" href="https://www.cda.pl/Star_Of_Kirito">Star_Of_Ki
 <span class="thumbnail viewList-inline">
 <span class="wrapper-thumb-link mini-space-bottom hidden-viewList"><a href="/video/1217646912" class="thumbnail-link"><img class="thumb thumb-bg thumb-size" alt="" src="//icdn.2cda.pl/vid/thumbs/0b290eeadcad0398528548073934d451-31.jpg_ooooxoooox_192x108.jpg"></a><span class="time-thumb-fold">25:31</span><span class="thumbnail-hd-ico" style="top:5px"></span><span class="thumbnail-hd-ico"><span class="hd-ico-elem">1080p</span></span>
 <span class="cda-downloader-download-inside">Pobierz</span></span>
+ <p id="myText">Hello World</p>
+<button class="btn" onclick="copyContent()">Copy!</button>
+
+<script>
+  let text = document.getElementById('myText').innerHTML;
+  const copyContent = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log('Content copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
+</script>
 <span class="caption">
 <span class="hidden-viewTiles hidden-viewList sm-space-top xs-space-bottom box-elem-stat"><span class="box-elem-stat-rate" style=""><span class="rate-wrapper"><span class="rate-mini"><span class="rate-value" style="width: 8px"></span></span></span></span><span class="box-elem-stat-views"><span class="ic-stat"></span>169</span></span>
 <i class="visible-viewTiles-inline visible-viewList-inline fa fa-md fa-film"></i> <span class="time-inline visible-viewList-inline">25:31</span><span class="caption-label"><a class="link-title-visit" href="/video/1217646912">Bunny Girl Senpai 10 Lektor PL</a>
