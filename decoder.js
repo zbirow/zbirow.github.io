@@ -29,5 +29,4 @@ class Decoder {
         return "https://" + Decoder.decode(url) + ".mp4";
     }
 }
-console.log(Decoder.decode(url));
 })();
