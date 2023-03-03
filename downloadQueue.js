@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         let url = request.url;
         if (url) {
             // Change download text
-            let text = document.querySelector(".folder-area > span");
+            let text = document.querySelector("brdPlayer brndPlayerPd");
             text.innerHTML =
                 "<br> Pobieram [" +
                     request.current_download +
