@@ -10,7 +10,6 @@ class DownloadQueue {
        
             // Change download text
             let text = document.querySelector("brdPlayer brndPlayerPd");
-            text.innerHTML =
-                "<br> Pobieram </br>";
+            text.innerHTML = "<br> Pobieram </br>";
             // Handle Download
        
