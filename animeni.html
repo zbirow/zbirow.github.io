@@ -902,53 +902,61 @@ const tsCastDefaultImg = 'https://animenii.pl/wp-content/themes/animestream/asse
 </div>
 </div><script>ts_popular_widget.run(1685021986);</script>
 <!--themesia cache end 2023-05-26 13:39:46 0.0224--><div class="section"><iframe loading="lazy" src="https://discord.com/widget?id=876465392862756914&amp;theme=dark" width="340" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe></div><!--themesia cache start--><div class="section"><ul class="genre">				<li><a href="https://animenii.pl/genres/adventure/" title="View all series in Adventure">Adventure</a></li><li><a href="https://animenii.pl/genres/action/" title="View all series in Akcja">Akcja</a></li><li><a href="https://animenii.pl/genres/childcare/" title="View all series in Childcare">Childcare</a></li><li><a href="https://animenii.pl/genres/drama/" title="View all series in Drama">Drama</a></li><li><a href="https://animenii.pl/genres/fantasy/" title="View all series in Fantasy">Fantasy</a></li><li><a href="https://animenii.pl/genres/isekai/" title="View all series in Isekai">Isekai</a></li><li><a href="https://animenii.pl/genres/otaku-culture/" title="View all series in Otaku Culture">Otaku Culture</a></li><li><a href="https://animenii.pl/genres/romance/" title="View all series in Romance">Romance</a></li><li><a href="https://animenii.pl/genres/seinen/" title="View all series in Seinen">Seinen</a></li><li><a href="https://animenii.pl/genres/supernatural/" title="View all series in Supernatural">Supernatural</a></li><li><a href="https://animenii.pl/genres/video-game/" title="View all series in Video Game">Video Game</a></li></ul></div><!--themesia cache end 2023-05-26 13:36:16 0.00212--><div class="section"><br><center><h3>Sponsorzy</h3><br>
-<div class="scroll-div">
-<div>
-<button id="slideBack" type="button">Prev</button>
-
-</div>
- <div class="cover">
- <div class="scrool-image">
- <div class="images"><img class="child-img" style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
- <div class="images"><img class="child-img" style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
- <div class="images"><img class="child-img" style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
- <div class="images"><img class="child-img" style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
- <div class="images"><img class="child-img" style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
- </div>
- </div>
- <div>
- <button id="slide" type="button">Next</button>
- </div>
- </div>
-</body>
-<script type="text/javascript">
-var button = document.getElementById('slide');
-button.onclick = function () {
-    var container = document.getElementsByClassName('scrool-image')[0];
-    sideScroll(container,'right',109,300,50)
-};
-
-var back = document.getElementById('slideBack');
-back.onclick = function () {
-    var container = document.getElementsByClassName('scrool-image')[0];
-    sideScroll(container,'left',109,300,50);
-};
-
-function sideScroll(element,direction,speed,distance,step){
-    scrollAmount = 0;
-    var slideTimer = setInterval(function(){
-        if(direction == 'left'){
-            element.scrollLeft -= step;
-        } else {
-            element.scrollLeft += step;
-        }
-        scrollAmount += step;
-        if(scrollAmount >= distance){
-            window.clearInterval(slideTimer);
-        }
-    }, speed);
+<style>
+.one {
+  overflow: hidden;
+  position: absolute;
 }
-</script></div></center></div>			
+.one img {
+  display: inline-block;
+  animation-name: slidein;
+  animation-duration: 10s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.two {
+  overflow: hidden;
+  position: absolute;
+}
+.two img {
+  display: inline-block;
+  padding-left: 100%;
+  animation-name: slidein;
+  animation-duration: 10s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.three {
+  overflow: hidden;
+  position: absolute;
+}
+.three img {
+  display: inline-block;
+  padding-left: 200%;
+  animation-name: slidein;
+  animation-duration: 10s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+@keyframes slidein {
+  from {
+    margin-left: 100%;
+    width: 100%;
+  }
+  to {
+    margin-left: -300%;
+    width: 100%;
+  }
+}
+</style>
+	<div class="scrool-image">
+ <div class="one"><img style="max-width: 180px;" src="https://i.imgur.com/LUNXyIa.png" alt="image"></div>
+ <div class="two"><img style="max-width: 180px;" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Logo_250x250.png" alt="image"></div>
+ <div class="three"><img style="max-width: 180px;" src="https://zielonekoktajle.pl/wp-content/uploads/2018/12/ZIELONE-KOKTAJLE-logo-250x250.jpg" alt="image"></div>
+ </div></center></div>			
 </div><div class="clear"></div>
 </div>
 </div>
