@@ -1,3 +1,15 @@
+// ==UserScript==
+// @name         Cda linki
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       Zbirow
+// @match        https://www.cda.pl/*/folder/*
+// @match        https://zbirow.github.io/cdalinks
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @grant        none
+// ==/UserScript==
+
 (function getAttribute() {
     'use strict'
 let links = document.querySelectorAll('a.thumbnail-link');
@@ -52,6 +64,12 @@ elect.innerHTML = `<style>
   -webkit-transition: .4s;
   transition: .4s;
 }
+.cxfd {
+display: none;
+}
+.cxfd.open {
+display: block;
+}
 .cxd.open {
 display: none;
 }
@@ -97,5 +115,6 @@ dendo.appendChild(elect);
 const jstoggle = document.getElementsByClassName('zswit')[0];
   jstoggle.addEventListener('click', () => {
   document.querySelector("div.cxd").classList.toggle('open');
+      document.querySelector("div.cxfd").classList.toggle('open');
   });
 })();
