@@ -29,14 +29,6 @@ player.appendChild(build);
 build.className = `copylink`
 build.innerHTML = `<h5>Odcinek `+ar[i]+`</h5><sup id="`+ar[i]+`zbirow"><span><</span>`+ifra+links[i].href.split('/').slice(4)+ifre+`<span>><</span>`+treu+`<span>></span></sup>`+
 `<button class="btn" style="margin-left:10px; margin-top:-90px;" type="button" onclick="copyEvent('`+ar[i]+`zbirow')">Copy</button>`}
-let player = document.querySelector('span.folder-area');
-var script_tag = document.createElement('script');
-script_tag.text = `function copyEvent(id){
-var str = document.getElementById(id);
-window.getSelection().selectAllChildren(str);
-document.execCommand("Copy")
-}`;
-player.appendChild(script_tag);
 let dendo = document.getElementsByClassName('panel-heading smoke')[0];
 let elect = document.createElement("div");
 elect.innerHTML = `<style>
