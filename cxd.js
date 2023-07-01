@@ -14,7 +14,7 @@
     'use strict'
 let links = document.querySelectorAll('a.thumbnail-link');
 let ifra = `iframe src="https://ebd.cda.pl/620x395/`
-let ifre = `" width="620" height="1080" style="border:none" frameBorder="0" scrolling="no" allowfullscreen name="v2"`
+let ifre = `" width="620" height="395" style="border:none" frameBorder="0" scrolling="no" allowfullscreen name="v2"`
 let treu = `/iframe`
 let play = document.querySelector('span.folder-area');
 let pla = document.querySelector('span.folder-area');
