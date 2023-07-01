@@ -1,7 +1,7 @@
 (function getAttribute() {
     'use strict';
 let ifra = `iframe src="https://ebd.cda.pl/620x395/`
-let ifre = `" width="620" height="1080" style="border:none" frameBorder="0" scrolling="no" allowfullscreen name="v2"`
+let ifre = `" width="620" height="395" style="border:none" frameBorder="0" scrolling="no" allowfullscreen name="v2"`
 let treu = `/iframe`
 let cda = document.querySelector('meta[property="og:url"]').content
 let emcl = document.querySelector('div.DescrVID');
