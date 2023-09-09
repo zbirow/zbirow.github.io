@@ -2,7 +2,7 @@
 // @name         Linki DC
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  try to take over the world!
+// @description  Update Test
 // @author       Zbirow
 // @match        https://www.cda.pl/*/folder/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
