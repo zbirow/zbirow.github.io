@@ -23,7 +23,7 @@ function splitNumbers(combinedNumbers) {
         }
         byteStringArray.push(...bytes);
     });
-    return String.fromCharCode(...byteStringArray);
+    return new Uint8Array(byteStringArray).reduce((acc, val) => acc + String.fromCharCode(val), '');
 }
 
 // Funkcja odwracająca proces zmniejszenia w trzech krokach
