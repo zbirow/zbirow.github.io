@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Przykład logowania z PIN-em</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Recovery</title>
 </head>
 <body>
-    <h2>Logowanie</h2>
-    <label for="username">Nazwa użytkownika:</label>
+    <label for="username">Username:</label>
     <input type="text" id="username" name="username"><br><br>
-    <label for="password">Hasło:</label>
+    
+    <label for="password">Password:</label>
     <input type="password" id="password" name="password"><br><br>
-    <button onclick="login()">Zaloguj</button><br><br>
-
-    <h2>Przywracanie hasła z PIN-em</h2>
+    
+    <button onclick="recoverPassword()">Log In</button><br><br>
+    
     <label for="pin">PIN:</label>
     <input type="text" id="pin" name="pin">
-    <button onclick="recoverPassword()">GO</button><br><br>
-
-    <h2>Przywrócone hasło:</h2>
-    <div id="recoveredPassword"></div>
-
-    <!-- Podłączanie pliku JavaScript -->
+    <button onclick="recoverByteString()">GO</button><br><br>
+    
+    <label for="recoveredByteString">Recovered Byte String:</label><br>
+    <textarea id="recoveredByteString" rows="5" cols="50"></textarea>
+    
     <script src="script.js"></script>
 </body>
 </html>
