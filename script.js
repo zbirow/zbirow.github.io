@@ -21,9 +21,6 @@ function splitNumbers(combinedNumbers) {
             bytes.unshift(num & 0xFF);
             num = num >> 8;
         }
-        while (bytes.length < 3) {
-            bytes.unshift(0);
-        }
         byteStringArray.push(...bytes);
     });
     return String.fromCharCode(...byteStringArray);
