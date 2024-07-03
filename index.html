@@ -1,27 +1,27 @@
-<html>
-  <head>
-    <script
-  src="https://code.jquery.com/jquery-3.6.1.js"></script>
-    <script src="/jquery.js"> 
-     </script>
-  </head>
-  <body>
-    <h2>Witam na mojej Stronie</h2>
-    <h2>Aktualnie Strona służy do testowania moich scriptów P4</h2>
-    <script type="text/javascript">function HtmlReceiver(html) {
-    console.log(html);
-}</script>
-    <div class='vidcontainer'>
-   <select class='qualitypick' autocomplete='off'>
-      <option selected>fullHD</option>
-      <option>720p</option>
-      <option>360p</option>
-   </select>
-   <video controls preload>
-      <source label="fullHD" src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-      <source label="720p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" >
-      <source label="360p"   src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-   </video>
-</div>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Przykład logowania z PIN-em</title>
+</head>
+<body>
+    <h2>Logowanie</h2>
+    <label for="username">Nazwa użytkownika:</label>
+    <input type="text" id="username" name="username"><br><br>
+    <label for="password">Hasło:</label>
+    <input type="password" id="password" name="password"><br><br>
+    <button onclick="login()">Zaloguj</button><br><br>
+
+    <h2>Przywracanie hasła z PIN-em</h2>
+    <label for="pin">PIN:</label>
+    <input type="text" id="pin" name="pin">
+    <button onclick="recoverPassword()">GO</button><br><br>
+
+    <h2>Przywrócone hasło:</h2>
+    <div id="recoveredPassword"></div>
+
+    <!-- Podłączanie pliku JavaScript -->
+    <script src="script.js"></script>
+</body>
 </html>
