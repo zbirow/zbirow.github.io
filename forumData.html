@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generowanie linków</title>
+    <title>Generowanie Odnośników</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #2d3037;
         }
         textarea {
             width: 100%;
@@ -17,29 +18,68 @@
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
-            background-color: #f9f9f9;
+            background-color: #2d3037;
+        }
+        .custom-links {
+            background-color: #2d3037;
+            color: #dae6f3;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .custom-links a {
+            color: #dae6f3;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .link {
+            background-color: #2d3037;
+            color: #dae6f3;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .link a {
+            color: #dae6f3;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        h1 {
+            color: #dae6f3;
+        }
+        h2 {
+            color: #dae6f3;
+        }
+        textarea {
+            background-color: #2d3037;
+            color: #dae6f3;
+            border: 1px solid #ccc;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
-
-<h1>Generowanie odnośników z linków v2</h1>
-
-<p>Wklej swoje linki w formacie:</p>
+<h1>Generowanie dnośników</h1>
 <textarea id="inputText" placeholder="Wprowadź linki..."></textarea>
 <button onclick="generateLinks()">Generuj odnośniki</button>
+<button onclick="generateCustomLinks()">Generuj niestandardowe odnośniki</button>
 
 <h2>Wynik:</h2>
 <div id="output"></div>
 
 <script>
+function clearOutput() {
+    document.getElementById('output').innerHTML = '';
+}
 function generateLinks() {
+    clearOutput();
     const inputText = document.getElementById('inputText').value;
     const lines = inputText.split('\n');
     let outputHtml = '';
 
     lines.forEach(line => {
-        // Sprawdzenie różnych formatów linków
         const matchWithBrackets = line.match(/^(\d+)\.\s*<(.+?)>/);
         const matchWithSpace = line.match(/^(\d+)\.\s*(https?:\/\/[^\s]+)/);
         const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
@@ -48,23 +88,59 @@ function generateLinks() {
         if (matchWithBrackets) {
             const episodeNumber = matchWithBrackets[1];
             const url = matchWithBrackets[2];
-            outputHtml += `<p><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
+            outputHtml += `<p class="link"><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
         } else if (matchWithSpace) {
             const episodeNumber = matchWithSpace[1];
             const url = matchWithSpace[2];
-            outputHtml += `<p><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
+            outputHtml += `<p class="link"><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
         } else if (customTextMatch) {
             const customText = customTextMatch[1];
             const url = customTextMatch[2];
-            outputHtml += `<p><a href="${url}" target="_blank">${customText}</a></p>\n`;
+            outputHtml += `<p class="link"><a href="${url}" target="_blank">${customText}</a></p>\n`;
         } else if (customTextWithoutBracketsMatch) {
             const customText = customTextWithoutBracketsMatch[1].trim();
             const url = customTextWithoutBracketsMatch[2];
-            outputHtml += `<p><a href="${url}" target="_blank">${customText}</a></p>\n`;
+            outputHtml += `<p class="link"><a href="${url}" target="_blank">${customText}</a></p>\n`;
         }
     });
 
     document.getElementById('output').innerHTML = outputHtml;
+}
+
+function generateCustomLinks() {
+    clearOutput();
+    const inputText = document.getElementById('inputText').value;
+    const lines = inputText.split('\n');
+    const links = [];
+
+    // Zbieranie linków
+    for (let i = 0; i < lines.length; i++) {
+        const match = lines[i].match(/(https?:\/\/[^\s]+)/);
+        if (match) {
+            links.push(match[1]);
+        }
+    }
+
+    // Dzielimy linki na dwie grupy
+    const midIndex = Math.ceil(links.length / 2);
+    const group1 = links.slice(0, midIndex);
+    const group2 = links.slice(midIndex);
+
+    let outputHtml = '';
+    // Tworzenie HTML w formacie naprzemiennym
+    const maxLength = Math.max(group1.length, group2.length);
+    for (let i = 0; i < maxLength; i++) {
+        outputHtml += '<p class="custom-links">';
+        if (group1[i]) {
+            outputHtml += `<strong><a href="${group1[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${i + 1}</a>`;
+        }
+        if (group2[i]) {
+            outputHtml += `&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="${group2[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${midIndex + i + 1}</a></strong>`;
+        }
+        outputHtml += '</p>';  // Zamykanie elementu <p> dla grupy linków
+    }
+
+    document.getElementById('output').innerHTML += outputHtml;
 }
 </script>
 
