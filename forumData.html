@@ -39,17 +39,27 @@ function generateLinks() {
     let outputHtml = '';
 
     lines.forEach(line => {
-        // Sprawdź, czy linia zaczyna się od liczby
-        const match = line.match(/^(\d+)\.<(https?:\/\/[^>]+)>/);
-        const customTextMatch = line.match(/^([^\d].*?)<([^>]+)>/);
+        // Sprawdzenie różnych formatów linków
+        const matchWithBrackets = line.match(/^(\d+)\.\s*<(.+?)>/);
+        const matchWithSpace = line.match(/^(\d+)\.\s*(https?:\/\/[^\s]+)/);
+        const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
+        const customTextWithoutBracketsMatch = line.match(/^([^\d].*?)(https?:\/\/[^\s]+)/);
 
-        if (match) {
-            const episodeNumber = match[1];
-            const url = match[2];
+        if (matchWithBrackets) {
+            const episodeNumber = matchWithBrackets[1];
+            const url = matchWithBrackets[2];
+            outputHtml += `<p><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
+        } else if (matchWithSpace) {
+            const episodeNumber = matchWithSpace[1];
+            const url = matchWithSpace[2];
             outputHtml += `<p><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
         } else if (customTextMatch) {
             const customText = customTextMatch[1];
             const url = customTextMatch[2];
+            outputHtml += `<p><a href="${url}" target="_blank">${customText}</a></p>\n`;
+        } else if (customTextWithoutBracketsMatch) {
+            const customText = customTextWithoutBracketsMatch[1].trim();
+            const url = customTextWithoutBracketsMatch[2];
             outputHtml += `<p><a href="${url}" target="_blank">${customText}</a></p>\n`;
         }
     });
