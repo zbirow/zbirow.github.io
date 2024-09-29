@@ -6,7 +6,7 @@
     <title>Generowanie Odnośników</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             margin: 20px;
             background-color: #2d3037;
         }
@@ -23,7 +23,7 @@
         .custom-links {
             background-color: #2d3037;
             color: #dae6f3;
-            font-size: 14px;
+            font-size: 20px;
             text-align: center;
             padding: 10px;
             margin: 5px 0;
@@ -36,7 +36,7 @@
         .link {
             background-color: #2d3037;
             color: #dae6f3;
-            font-size: 14px;
+            font-size: 20px;
             text-align: center;
             padding: 10px;
             margin: 5px 0;
@@ -70,79 +70,92 @@
 <div id="output"></div>
 
 <script>
-function clearOutput() {
-    document.getElementById('output').innerHTML = '';
-}
-function generateLinks() {
-    clearOutput();
-    const inputText = document.getElementById('inputText').value;
-    const lines = inputText.split('\n');
-    let outputHtml = '';
-
-    lines.forEach(line => {
-        const matchWithBrackets = line.match(/^(\d+)\.\s*<(.+?)>/);
-        const matchWithSpace = line.match(/^(\d+)\.\s*(https?:\/\/[^\s]+)/);
-        const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
-        const customTextWithoutBracketsMatch = line.match(/^([^\d].*?)(https?:\/\/[^\s]+)/);
-
-        if (matchWithBrackets) {
-            const episodeNumber = matchWithBrackets[1];
-            const url = matchWithBrackets[2];
-            outputHtml += `<p class="link"><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
-        } else if (matchWithSpace) {
-            const episodeNumber = matchWithSpace[1];
-            const url = matchWithSpace[2];
-            outputHtml += `<p class="link"><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></p>\n`;
-        } else if (customTextMatch) {
-            const customText = customTextMatch[1];
-            const url = customTextMatch[2];
-            outputHtml += `<p class="link"><a href="${url}" target="_blank">${customText}</a></p>\n`;
-        } else if (customTextWithoutBracketsMatch) {
-            const customText = customTextWithoutBracketsMatch[1].trim();
-            const url = customTextWithoutBracketsMatch[2];
-            outputHtml += `<p class="link"><a href="${url}" target="_blank">${customText}</a></p>\n`;
-        }
-    });
-
-    document.getElementById('output').innerHTML = outputHtml;
-}
-
-function generateCustomLinks() {
-    clearOutput();
-    const inputText = document.getElementById('inputText').value;
-    const lines = inputText.split('\n');
-    const links = [];
-
-    // Zbieranie linków
-    for (let i = 0; i < lines.length; i++) {
-        const match = lines[i].match(/(https?:\/\/[^\s]+)/);
-        if (match) {
-            links.push(match[1]);
-        }
+    function clearOutput() {
+        document.getElementById('output').innerHTML = '';
     }
-
-    // Dzielimy linki na dwie grupy
-    const midIndex = Math.ceil(links.length / 2);
-    const group1 = links.slice(0, midIndex);
-    const group2 = links.slice(midIndex);
-
-    let outputHtml = '';
-    // Tworzenie HTML w formacie naprzemiennym
-    const maxLength = Math.max(group1.length, group2.length);
-    for (let i = 0; i < maxLength; i++) {
-        outputHtml += '<p class="custom-links">';
-        if (group1[i]) {
-            outputHtml += `<strong><a href="${group1[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${i + 1}</a>`;
-        }
-        if (group2[i]) {
-            outputHtml += `&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="${group2[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${midIndex + i + 1}</a></strong>`;
-        }
-        outputHtml += '</p>';  // Zamykanie elementu <p> dla grupy linków
+    
+    function generateLinks() {
+        clearOutput();
+        const inputText = document.getElementById('inputText').value;
+        const lines = inputText.split('\n');
+        let outputHtml = '';
+    
+        lines.forEach(line => {
+            // Dopasowanie numerów odcinków z literami, przecinkami itp.
+            const matchWithBrackets = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*<(.+?)>/);
+            const matchWithSpace = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*(https?:\/\/[^\s]+)/);
+            const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
+            const customTextWithoutBracketsMatch = line.match(/^([^\d].*?)(https?:\/\/[^\s]+)/);
+    
+            if (matchWithBrackets) {
+                const episodeNumber = matchWithBrackets[1];
+                const url = matchWithBrackets[2];
+                outputHtml += `<p class="link"><strong><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></strong></p>\n`;
+            } else if (matchWithSpace) {
+                const episodeNumber = matchWithSpace[1];
+                const url = matchWithSpace[2];
+                outputHtml += `<p class="link"><strong><a href="${url}" target="_blank">Odcinek ${episodeNumber}</a></strong></p>\n`;
+            } else if (customTextMatch) {
+                const customText = customTextMatch[1];
+                const url = customTextMatch[2];
+                outputHtml += `<p class="link"><strong><a href="${url}" target="_blank">${customText}</a></strong></p>\n`;
+            } else if (customTextWithoutBracketsMatch) {
+                const customText = customTextWithoutBracketsMatch[1].trim();
+                const url = customTextWithoutBracketsMatch[2];
+                outputHtml += `<p class="link"><strong><a href="${url}" target="_blank">${customText}</a></strong></p>\n`;
+            }
+        });
+    
+        document.getElementById('output').innerHTML = outputHtml;
     }
-
-    document.getElementById('output').innerHTML += outputHtml;
-}
-</script>
-
+    
+    function generateCustomLinks() {
+        clearOutput();
+        const inputText = document.getElementById('inputText').value;
+        const lines = inputText.split('\n');
+        const links = [];
+        const episodeNumbers = [];
+    
+        // Zbieranie linków i numerów odcinków
+        lines.forEach(line => {
+            const matchWithBrackets = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*<(.+?)>/);
+            const matchWithSpace = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*(https?:\/\/[^\s]+)/);
+            
+            if (matchWithBrackets) {
+                episodeNumbers.push(matchWithBrackets[1]);
+                links.push(matchWithBrackets[2]);
+            } else if (matchWithSpace) {
+                episodeNumbers.push(matchWithSpace[1]);
+                links.push(matchWithSpace[2]);
+            }
+        });
+    
+        // Dzielimy linki i numery odcinków na dwie grupy
+        const midIndex = Math.floor(links.length / 2);  // Zmieniamy na floor
+        const group1 = links.slice(0, midIndex);
+        const group2 = links.slice(midIndex);
+        const group1Numbers = episodeNumbers.slice(0, midIndex);
+        const group2Numbers = episodeNumbers.slice(midIndex);
+    
+        let outputHtml = '';
+        const maxLength = Math.max(group1.length, group2.length);
+    
+        for (let i = 0; i < maxLength; i++) {
+            outputHtml += '<p class="custom-links">';
+            
+            if (group1[i]) {
+                outputHtml += `<strong><a href="${group1[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${group1Numbers[i]}</a></strong>`;
+            } else {
+                outputHtml += `&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;`; // Jeśli brak w pierwszej grupie, dodaj spacje
+            }
+    
+            if (group2[i]) {
+                outputHtml += `&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<strong><a href="${group2[i]}" rel="external nofollow noopener" target="_blank">Odcinek ${group2Numbers[i]}</a></strong>`;
+            }
+            outputHtml += '</p>'; // Zamykanie elementu <p> dla grupy linków
+        }
+        document.getElementById('output').innerHTML = outputHtml;
+    }
+    </script>
 </body>
 </html>
