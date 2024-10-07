@@ -52,8 +52,11 @@
 <textarea id="inputText" placeholder="Wprowadź linki do Odcinków Lektor..."></textarea>
 <h2>Odcinki Napisy</h2>
 <textarea id="inputTextSub" placeholder="Wprowadź linki do Odcinków Napisy..."></textarea>
+<div class="buttons">
 <button onclick="generateLinks()">Generuj odnośniki</button>
-<button onclick="generateSections()">Dodaj sekcje</button>
+<button onclick="generateSections()">Sekcja z napisami</button>
+<button onclick="copyToClipboard()">Kopiuj</button>
+</div>
 <h2>Wynik:</h2>
 <div id="output"></div>
 
@@ -66,7 +69,7 @@
         clearOutput();
         const inputText = document.getElementById('inputText').value;
         const lines = inputText.split('\n');
-        let outputHtml = '<h2>Odcinki Lektor:</h2>'; // Dodano nagłówek
+        let outputHtml = '<h2>Odcinki Lektor</h2>'; // Dodano nagłówek
 
         lines.forEach(line => {
             line = line.trim();
@@ -97,6 +100,7 @@
 
         document.getElementById('output').innerHTML = outputHtml;
     }
+
 
     function generateSections() {
         clearOutput();
@@ -155,13 +159,30 @@
         });
 
         const outputHtml = `
-            <h2>Odcinki Lektor:</h2>
+            <h2>Odcinki Lektor</h2>
             <div>${firstPart}</div>
-            <h2>Odcinki Napisy:</h2>
+            <h2>Odcinki Napisy</h2>
             <div>${secondPart}</div>
         `;
         
         document.getElementById('output').innerHTML = outputHtml;
+
+        
+    }
+    function copyToClipboard() {
+        const outputDiv = document.getElementById('output');
+        const range = document.createRange();
+        range.selectNode(outputDiv);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        try {
+            document.execCommand('copy');
+            alert('Wynik skopiowany do schowka!');
+        } catch (err) {
+            alert('Błąd przy kopiowaniu!');
+        }
+        selection.removeAllRanges(); // Usunięcie zaznaczenia
     }
 </script>
 </body>
