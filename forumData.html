@@ -66,7 +66,7 @@
         clearOutput();
         const inputText = document.getElementById('inputText').value;
         const lines = inputText.split('\n');
-        let outputHtml = '<h2>Odcinki Lektor</h2>'; // Dodano nagłówek
+        let outputHtml = '<h2>Odcinki Lektor:</h2>'; // Dodano nagłówek
 
         lines.forEach(line => {
             line = line.trim();
@@ -155,9 +155,9 @@
         });
 
         const outputHtml = `
-            <h2>Odcinki Lektor</h2>
+            <h2>Odcinki Lektor:</h2>
             <div>${firstPart}</div>
-            <h2>Odcinki Napisy</h2>
+            <h2>Odcinki Napisy:</h2>
             <div>${secondPart}</div>
         `;
         
