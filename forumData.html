@@ -11,8 +11,9 @@
             background-color: #2d3037;
         }
         textarea {
-            width: 100%;
+            width: 20%;
             height: 150px;
+            margin-bottom: 20px;
         }
         #output {
             margin-top: 20px;
@@ -47,8 +48,12 @@
 </head>
 <body>
 <h1>Generowanie Odnośników</h1>
-<textarea id="inputText" placeholder="Wprowadź linki..."></textarea>
+<h2>Odcinki Lektor</h2>
+<textarea id="inputText" placeholder="Wprowadź linki do Odcinków Lektor..."></textarea>
+<h2>Odcinki Napisy</h2>
+<textarea id="inputTextSub" placeholder="Wprowadź linki do Odcinków Napisy..."></textarea>
 <button onclick="generateLinks()">Generuj odnośniki</button>
+<button onclick="generateSections()">Dodaj sekcje</button>
 <h2>Wynik:</h2>
 <div id="output"></div>
 
@@ -61,7 +66,7 @@
         clearOutput();
         const inputText = document.getElementById('inputText').value;
         const lines = inputText.split('\n');
-        let outputHtml = '';
+        let outputHtml = '<h2>Odcinki Lektor</h2>'; // Dodano nagłówek
 
         lines.forEach(line => {
             line = line.trim();
@@ -74,22 +79,88 @@
             if (matchWithBrackets) {
                 const episodeNumber = matchWithBrackets[1];
                 const url = matchWithBrackets[2];
-                outputHtml += `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                outputHtml += `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`;
             } else if (matchWithSpace) {
                 const episodeNumber = matchWithSpace[1];
                 const url = matchWithSpace[2];
-                outputHtml += `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                outputHtml += `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`;
             } else if (customTextMatch) {
                 const customText = customTextMatch[1];
                 const url = customTextMatch[2];
-                outputHtml += `<strong><a href="${url}" class="link" target="_blank">${customText}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                outputHtml += `<strong><a href="${url}" class="link" target="_blank">${customText}</a></strong><br>`;
             } else if (customTextWithoutBracketsMatch) {
                 const customText = customTextWithoutBracketsMatch[1].trim();
                 const url = customTextWithoutBracketsMatch[2];
-                outputHtml += `<strong><a href="${url}" class="link" target="_blank">${customText}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                outputHtml += `<strong><a href="${url}" class="link" target="_blank">${customText}</a></strong><br>`;
             }
         });
 
+        document.getElementById('output').innerHTML = outputHtml;
+    }
+
+    function generateSections() {
+        clearOutput();
+        const inputText = document.getElementById('inputText').value;
+        const inputTextSub = document.getElementById('inputTextSub').value;
+        const lines = inputText.split('\n');
+        const linesSub = inputTextSub.split('\n');
+
+        let firstPart = '';
+        let secondPart = '';
+
+        lines.forEach(line => {
+            line = line.trim();
+            const matchWithBrackets = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*<(.+?)>/);
+            const matchWithSpace = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*(https?:\/\/[^\s]+)/);
+            const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
+            const customTextWithoutBracketsMatch = line.match(/^([^\d].*?)(https?:\/\/[^\s]+)/);
+
+            if (matchWithBrackets || matchWithSpace || customTextMatch || customTextWithoutBracketsMatch) {
+                const url = matchWithBrackets ? matchWithBrackets[2] :
+                            matchWithSpace ? matchWithSpace[2] :
+                            customTextMatch ? customTextMatch[2] :
+                            customTextWithoutBracketsMatch[2];
+
+                const episodeNumber = matchWithBrackets ? matchWithBrackets[1] :
+                                      matchWithSpace ? matchWithSpace[1] :
+                                      customTextMatch ? customTextMatch[1] :
+                                      customTextWithoutBracketsMatch[1].trim();
+
+                const linkHtml = `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                firstPart += linkHtml;
+            }
+        });
+
+        linesSub.forEach(line => {
+            line = line.trim();
+            const matchWithBrackets = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*<(.+?)>/);
+            const matchWithSpace = line.match(/^(\d+[A-Za-z]?(?:,\d+)?)\.\s*(https?:\/\/[^\s]+)/);
+            const customTextMatch = line.match(/^([^\d].*?)\s*<(https?:\/\/[^>]+)>/);
+            const customTextWithoutBracketsMatch = line.match(/^([^\d].*?)(https?:\/\/[^\s]+)/);
+
+            if (matchWithBrackets || matchWithSpace || customTextMatch || customTextWithoutBracketsMatch) {
+                const url = matchWithBrackets ? matchWithBrackets[2] :
+                            matchWithSpace ? matchWithSpace[2] :
+                            customTextMatch ? customTextMatch[2] :
+                            customTextWithoutBracketsMatch[2];
+
+                const episodeNumber = matchWithBrackets ? matchWithBrackets[1] :
+                                      matchWithSpace ? matchWithSpace[1] :
+                                      customTextMatch ? customTextMatch[1] :
+                                      customTextWithoutBracketsMatch[1].trim();
+
+                const linkHtml = `<strong><a href="${url}" class="link" target="_blank">Odcinek ${episodeNumber}</a></strong><br>`; // Dodanie <br> po każdym odnośniku
+                secondPart += linkHtml;
+            }
+        });
+
+        const outputHtml = `
+            <h2>Odcinki Lektor</h2>
+            <div>${firstPart}</div>
+            <h2>Odcinki Napisy</h2>
+            <div>${secondPart}</div>
+        `;
+        
         document.getElementById('output').innerHTML = outputHtml;
     }
 </script>
