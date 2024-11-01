@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linki do Wideo</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background-color:#3d3838; }
+        textarea { width: 100%; height: 100px; margin-top: 10px; }
+        button { margin-top: 10px; padding: 8px 12px; cursor: pointer; }
+        .link-container { margin-top: 20px; margin-left: -50px;}
+        .link-wrapper { margin-bottom: 10px; margin-top: 40px; }
+        .copied { color: green; }
+    </style>
+</head>
+<body>
+    <h2>Wklej Linki do Wideo</h2>
+    <textarea id="linkInput" placeholder="Wklej linki do wideo, każdy w nowej linii"></textarea>
+    <button onclick="displayLinks()">Pokaż Linki</button>
+    <div id="linkContainer" class="link-container"></div>
+    <script>
+        function displayLinks() {
+            const container = document.getElementById("linkContainer");
+            container.innerHTML = ""; // Czyści poprzednie linki
+            const links = document.getElementById("linkInput").value.split('\n');
+            let vv = `<video controls name="media"><source src="`
+            let cc = `" type="video/mp4"></video>`
+
+            links.forEach(link => {
+                if (link.trim()) {
+                    const linkWrapper = document.createElement("div");
+                    linkWrapper.className = "link-wrapper";
+
+                    // Tworzenie elementu tekstowego z linkiem
+                    const linkText = document.createElement("span");
+                    linkText.textContent = vv + link.trim() + cc
+                    
+                    // Tworzenie przycisku kopiowania linku
+                    const copyButton = document.createElement("button");
+                    copyButton.textContent = "Skopiuj link";
+                    copyButton.onclick = () => {
+                        navigator.clipboard.writeText(vv + link.trim() + cc);
+                        copyButton.textContent = "Skopiowano!";
+                        copyButton.classList.add("copied");
+                    };
+
+                    // Dodanie elementów do kontenera
+                    linkWrapper.appendChild(linkText);
+                    linkWrapper.appendChild(copyButton);
+                    container.appendChild(linkWrapper);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
