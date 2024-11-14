@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Łączenie linków</title>
+    <style>
+        body {background-color: #2d3037; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        textarea { width: 300px; height: 150px; margin: 10px; }
+        button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+        #copyButton { background-color: gray; color: white; border: none; cursor: pointer; }
+        #copyButton.copied { background-color: green; }
+        #output { width: 80%; height: 150px; margin-top: 20px; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Łączenie linków</h1>
+
+    <textarea id="table1" placeholder="Wklej linki w Tabeli 1 (każdy link w nowej linii)"></textarea>
+    <textarea id="table2" placeholder="Wklej linki w Tabeli 2 (każdy link w nowej linii)"></textarea>
+    <textarea id="table3" placeholder="Wklej linki w Tabeli 3 (każdy link w nowej linii)"></textarea>
+    <div>
+        <button onclick="generateLinks()">Generuj połączone linki</button>
+        <button id="copyButton" onclick="copyToClipboard()">Kopiuj</button>
+    </div>
+
+    <textarea id="output" readonly placeholder="Wygenerowany tekst pojawi się tutaj"></textarea>
+
+    <script>
+        function generateLinks() {
+            const table1Links = document.getElementById('table1').value.trim().split('\n');
+            const table2Links = document.getElementById('table2').value.trim().split('\n');
+            const table3Links = document.getElementById('table3').value.trim().split('\n');
+            const output = document.getElementById('output');
+            const copyButton = document.getElementById('copyButton');
+
+            output.value = ''; // Czyszczenie wyniku
+            copyButton.classList.remove('copied'); // Resetuje przycisk kopiowania do szarego
+
+            const maxLength = Math.max(table1Links.length, table2Links.length, table3Links.length);
+            let result = '';
+
+            for (let i = 0; i < maxLength; i++) {
+                const row = [i + 1]; // Numeracja
+                if (table1Links[i]) row.push(table1Links[i]);
+                if (table2Links[i]) row.push(table2Links[i]);
+                if (table3Links[i]) row.push(table3Links[i]);
+
+                result += row.join(',') + '\n'; // Łączy każdy wiersz przecinkiem i dodaje nową linię
+            }
+
+            output.value = result.trim(); // Usuwa ostatnią pustą linię
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            output.select();
+            output.setSelectionRange(0, 99999); // Dla mobilnych urządzeń
+            document.execCommand('copy');
+
+            // Zmienia kolor przycisku na zielony
+            const copyButton = document.getElementById('copyButton');
+            copyButton.classList.add('copied');
+        }
+    </script>
+
+</body>
+</html>
