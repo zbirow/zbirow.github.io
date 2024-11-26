@@ -38,19 +38,24 @@
         .output-container {
             margin-top: 20px;
         }
-        .output {
-            background-color: #1e1e1e;
+        .output-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
             padding: 10px;
+            background-color: #1e1e1e;
             border-radius: 5px;
-            margin-bottom: 10px;
-            overflow-x: auto;
-            text-align: center;
+            width: fit-content;
+        }
+        .output-item span {
+            margin-right: 10px;
+            word-wrap: break-word;
+            white-space: pre-wrap;  /* Ensures that long URLs or iframe code break lines properly */
         }
         .copy-button {
-            margin-top: 10px;
             padding: 10px;
             width: auto;
-            display: inline-block;
             background-color: #007BFF;
             border: none;
             color: white;
@@ -61,17 +66,14 @@
         .copy-button:hover {
             background-color: #0056b3;
         }
-        .file-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #80d4ff;
-        }
         .copied {
             background-color: #28a745 !important;
             color: white !important;
         }
-        p {
-            width: fit-content;
+        .output-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
         }
     </style>
 </head>
@@ -102,76 +104,57 @@
             // Iteruj po wszystkich zestawach linków
             for (let i = 0; i < maxLength; i++) {
                 if (links1[i]) {
-                    const fileName = extractFileName(links1[i]);
-                    appendFileName(outputContainer, fileName); // Wyświetl nazwę pliku
-                    appendIframe(outputContainer, links1[i]); // Wyświetl iframe
+                    // Pobierz nazwę z linku (po ostatnim ukośniku)
+                    const name = extractNameFromLink(links1[i]);
 
-                    // Zamiana 'e' na 'd' w linkach z pierwszego pola
+                    // Wyświetlanie nazwy nad iframe 1
+                    appendLabel(outputContainer, name);
+
+                    // Wyświetlanie iframe 1 jako tekst HTML z przyciskiem kopiowania po lewej
+                    appendCopyableItem(outputContainer, `iframe 1`, `<iframe src="${links1[i]}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`, links1[i]);
+
+                    // Zamiana 'e' na 'd' w linkach z pierwszego pola i dodanie linku
                     const modifiedLink = links1[i].replace('/e/', '/d/');
-                    appendLink(outputContainer, modifiedLink);
+                    appendCopyableItem(outputContainer, `link`, modifiedLink, modifiedLink);
                 }
                 if (links2[i]) {
-                    appendIframe(outputContainer, links2[i]);
+                    // Wyświetlanie iframe 2 jako tekst HTML z przyciskiem kopiowania po lewej
+                    appendCopyableItem(outputContainer, `iframe 2`, `<iframe src="${links2[i]}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`, links2[i]);
                 }
                 if (links3[i]) {
-                    appendIframe(outputContainer, links3[i]);
+                    // Wyświetlanie iframe 3 jako tekst HTML z przyciskiem kopiowania po lewej
+                    appendCopyableItem(outputContainer, `iframe 3`, `<iframe src="${links3[i]}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`, links3[i]);
                 }
             }
         }
 
-        // Funkcja do wyciągania nazwy pliku z linku i zamiany _ na spacje
-        function extractFileName(link) {
-            const parts = link.split('/');
-            const rawFileName = parts[parts.length - 1]; // Nazwa pliku na końcu URL
-            return rawFileName.replace(/_/g, ' '); // Zamiana "_" na spacje
-        }
-
-        // Funkcja do dodawania nazwy pliku
-        function appendFileName(container, fileName) {
-            const fileNameDiv = document.createElement('div');
-            fileNameDiv.className = 'file-name';
-            fileNameDiv.textContent = fileName;
-            container.appendChild(fileNameDiv);
-        }
-
-        // Funkcja do generowania i dodawania iframe
-        function appendIframe(container, link) {
-            const iframeCode = `<iframe src="${link}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`;
-
+        // Funkcja do generowania ukrytego kodu i etykiety
+        function appendCopyableItem(container, label, code, link) {
             const outputDiv = document.createElement('div');
-            outputDiv.className = 'output';
-
-            const codeBlock = document.createElement('code');
-            codeBlock.textContent = iframeCode;
+            outputDiv.className = 'output-item';
 
             const copyButton = document.createElement('button');
-            copyButton.textContent = 'Kopiuj iframe';
+            copyButton.textContent = 'Kopiuj';
             copyButton.className = 'copy-button';
-            copyButton.onclick = () => copyToClipboard(copyButton, iframeCode);
+            copyButton.onclick = () => copyToClipboard(copyButton, code);  // Kopiowanie kodu iframe
 
-            outputDiv.appendChild(codeBlock);
+            const labelText = document.createElement('span');
+            labelText.textContent = label;
+
+            const iframeText = document.createElement('span');
+            iframeText.textContent = code;  // Wyświetla kod iframe jako tekst HTML
+
             outputDiv.appendChild(copyButton);
-
+            outputDiv.appendChild(iframeText);
             container.appendChild(outputDiv);
         }
 
-        // Funkcja do generowania i dodawania zwykłego linku
-        function appendLink(container, link) {
-            const outputDiv = document.createElement('div');
-            outputDiv.className = 'output';
-
-            const linkText = document.createElement('p');
-            linkText.textContent = link;
-
-            const copyButton = document.createElement('button');
-            copyButton.textContent = 'Kopiuj link';
-            copyButton.className = 'copy-button';
-            copyButton.onclick = () => copyToClipboard(copyButton, link);
-
-            outputDiv.appendChild(linkText);
-            outputDiv.appendChild(copyButton);
-
-            container.appendChild(outputDiv);
+        // Funkcja do dodawania nazwy nad iframe
+        function appendLabel(container, text) {
+            const label = document.createElement('span');
+            label.className = 'output-label';
+            label.textContent = text;
+            container.appendChild(label);
         }
 
         // Funkcja do kopiowania tekstu i zmiany przycisku
@@ -184,6 +167,13 @@
                     button.classList.remove('copied');
                 }, 2000);
             });
+        }
+
+        // Funkcja do wyciągania nazwy z linku
+        function extractNameFromLink(link) {
+            const parts = link.split('/');
+            const lastPart = parts[parts.length - 1];
+            return lastPart.replace(/_/g, ' ');
         }
     </script>
 </body>
