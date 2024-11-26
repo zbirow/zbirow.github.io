@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator iframe i linków</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 20px;
+        }
+        textarea, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            resize: none;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output-container {
+            margin-top: 20px;
+        }
+        .output {
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            text-align: center;
+        }
+        .copy-button {
+            margin-top: 10px;
+            padding: 10px;
+            width: auto;
+            display: inline-block;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .copy-button:hover {
+            background-color: #0056b3;
+        }
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #80d4ff;
+        }
+        .copied {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+        p {
+            width: fit-content;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generator iframe i linków</h1>
+    <p>Wklej linki w pola poniżej (jeden lub więcej linków na pole):</p>
+    <textarea id="links1" placeholder="Linki z pola 1..."></textarea>
+    <textarea id="links2" placeholder="Linki z pola 2..."></textarea>
+    <textarea id="links3" placeholder="Linki z pola 3..."></textarea>
+    <button onclick="generateContent()">Generuj</button>
+    
+    <div id="output-container" class="output-container"></div>
+
+    <script>
+        function generateContent() {
+            // Pobierz wartości z trzech pól i podziel je na linie
+            const links1 = document.getElementById('links1').value.trim().split(/\s+/);
+            const links2 = document.getElementById('links2').value.trim().split(/\s+/);
+            const links3 = document.getElementById('links3').value.trim().split(/\s+/);
+
+            // Ustal maksymalną liczbę linków do przetworzenia
+            const maxLength = Math.max(links1.length, links2.length, links3.length);
+            const outputContainer = document.getElementById('output-container');
+
+            // Wyczyść poprzednie wyniki
+            outputContainer.innerHTML = '';
+
+            // Iteruj po wszystkich zestawach linków
+            for (let i = 0; i < maxLength; i++) {
+                if (links1[i]) {
+                    const fileName = extractFileName(links1[i]);
+                    appendFileName(outputContainer, fileName); // Wyświetl nazwę pliku
+                    appendIframe(outputContainer, links1[i]); // Wyświetl iframe
+
+                    // Zamiana 'e' na 'd' w linkach z pierwszego pola
+                    const modifiedLink = links1[i].replace('/e/', '/d/');
+                    appendLink(outputContainer, modifiedLink);
+                }
+                if (links2[i]) {
+                    appendIframe(outputContainer, links2[i]);
+                }
+                if (links3[i]) {
+                    appendIframe(outputContainer, links3[i]);
+                }
+            }
+        }
+
+        // Funkcja do wyciągania nazwy pliku z linku i zamiany _ na spacje
+        function extractFileName(link) {
+            const parts = link.split('/');
+            const rawFileName = parts[parts.length - 1]; // Nazwa pliku na końcu URL
+            return rawFileName.replace(/_/g, ' '); // Zamiana "_" na spacje
+        }
+
+        // Funkcja do dodawania nazwy pliku
+        function appendFileName(container, fileName) {
+            const fileNameDiv = document.createElement('div');
+            fileNameDiv.className = 'file-name';
+            fileNameDiv.textContent = fileName;
+            container.appendChild(fileNameDiv);
+        }
+
+        // Funkcja do generowania i dodawania iframe
+        function appendIframe(container, link) {
+            const iframeCode = `<iframe src="${link}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`;
+
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'output';
+
+            const codeBlock = document.createElement('code');
+            codeBlock.textContent = iframeCode;
+
+            const copyButton = document.createElement('button');
+            copyButton.textContent = 'Kopiuj iframe';
+            copyButton.className = 'copy-button';
+            copyButton.onclick = () => copyToClipboard(copyButton, iframeCode);
+
+            outputDiv.appendChild(codeBlock);
+            outputDiv.appendChild(copyButton);
+
+            container.appendChild(outputDiv);
+        }
+
+        // Funkcja do generowania i dodawania zwykłego linku
+        function appendLink(container, link) {
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'output';
+
+            const linkText = document.createElement('p');
+            linkText.textContent = link;
+
+            const copyButton = document.createElement('button');
+            copyButton.textContent = 'Kopiuj link';
+            copyButton.className = 'copy-button';
+            copyButton.onclick = () => copyToClipboard(copyButton, link);
+
+            outputDiv.appendChild(linkText);
+            outputDiv.appendChild(copyButton);
+
+            container.appendChild(outputDiv);
+        }
+
+        // Funkcja do kopiowania tekstu i zmiany przycisku
+        function copyToClipboard(button, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Skopiowano!';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = 'Kopiuj';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
