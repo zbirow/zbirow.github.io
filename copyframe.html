@@ -12,7 +12,7 @@
             margin: 20px;
         }
         textarea, button {
-            width: 100%;
+            width: 30%;
             margin-top: 10px;
             padding: 10px;
             border: none;
@@ -51,7 +51,7 @@
         .output-item span {
             margin-right: 10px;
             word-wrap: break-word;
-            white-space: pre-wrap;  /* Ensures that long URLs or iframe code break lines properly */
+            white-space: pre-wrap;
         }
         .copy-button {
             padding: 10px;
@@ -88,6 +88,7 @@
     <div id="output-container" class="output-container"></div>
 
     <script>
+        //Ni 2024
         function generateContent() {
             // Pobierz wartości z trzech pól i podziel je na linie
             const links1 = document.getElementById('links1').value.trim().split(/\s+/);
@@ -159,15 +160,11 @@
 
         // Funkcja do kopiowania tekstu i zmiany przycisku
         function copyToClipboard(button, text) {
-            navigator.clipboard.writeText(text).then(() => {
-                button.textContent = 'Skopiowano!';
-                button.classList.add('copied');
-                setTimeout(() => {
-                    button.textContent = 'Kopiuj';
-                    button.classList.remove('copied');
-                }, 2000);
-            });
-        }
+    navigator.clipboard.writeText(text).then(() => {
+        button.textContent = 'Skopiowano!';
+        button.classList.add('copied');     
+    }).catch(err => console.error('Błąd podczas kopiowania do schowka:', err));
+}
 
         // Funkcja do wyciągania nazwy z linku
         function extractNameFromLink(link) {
