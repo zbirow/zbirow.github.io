@@ -70,13 +70,16 @@
             links.forEach(link => {
                 const videoId = link.split('/').pop();
                 const iframeLink = `https://ebd.cda.pl/620x395/${videoId}`;
-                const iframeCode = `<iframe src=\"${iframeLink}\" width=\"620\" height=\"395\" frameborder=\"0\" allowfullscreen=\"\"></iframe>`;
+                const iframeCode = `<iframe src=\"${iframeLink}\" width=\"650\" height=\"315\" frameborder=\"0\" allowfullscreen=\"\"></iframe>`;
 
                 const iframeBox = document.createElement('div');
                 iframeBox.className = 'iframe-box';
 
                 const iframeContent = document.createElement('div');
-                iframeContent.innerHTML = `<strong>Link:</strong> ${link}<br><strong>Iframe:</strong><br><code>${iframeCode}</code>`;
+                let ifra = `iframe src="https://ebd.cda.pl/620x395/`
+                let ifre = `" width="560" height="315" style="border:none" frameBorder="0" scrolling="no" allowfullscreen name="v2"`
+                let treu = `/iframe`
+                iframeContent.innerHTML = `<span><</span>`+ifra+videoId+ifre+`<span>><</span>`+treu+`<span>></span>`;
 
                 const copyButton = document.createElement('button');
                 copyButton.className = 'copy-button';
