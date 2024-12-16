@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 20px;
+        }
+        .iframe-box {
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .copy-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .copy-button.copied {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Iframe Generator</h1>
+    <p>Wklej linki do filmów z cda.pl poniżej (jeden link w jednej linii):</p>
+    <textarea id="linksInput" placeholder="Wklej linki tutaj..."></textarea>
+    <button onclick="generateIframes()">Generuj iframe</button>
+
+    <div id="output" class="output"></div>
+
+    <script>
+        function generateIframes() {
+            const input = document.getElementById('linksInput').value;
+            const links = input.split('\n').map(link => link.trim()).filter(link => link !== '');
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+
+            links.forEach(link => {
+                const videoId = link.split('/').pop();
+                const iframeLink = `https://ebd.cda.pl/620x395/${videoId}`;
+                const iframeCode = `<iframe src="${iframeLink}" width="620" height="395" frameborder="0" allowfullscreen></iframe>`;
+
+                const iframeBox = document.createElement('div');
+                iframeBox.className = 'iframe-box';
+
+                const iframeContent = document.createElement('div');
+                iframeContent.innerHTML = `<strong>Link:</strong> ${link}<br><strong>Iframe:</strong><br><code>${iframeCode}</code>`;
+
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-button';
+                copyButton.textContent = 'Kopiuj';
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(iframeCode).then(() => {
+                        copyButton.textContent = 'Skopiowano';
+                        copyButton.classList.add('copied');
+                        setTimeout(() => {
+                            copyButton.textContent = 'Kopiuj';
+                            copyButton.classList.remove('copied');
+                        }, 2000);
+                    });
+                };
+
+                iframeBox.appendChild(iframeContent);
+                iframeBox.appendChild(copyButton);
+                output.appendChild(iframeBox);
+            });
+        }
+    </script>
+</body>
+</html>
