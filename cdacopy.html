@@ -70,7 +70,7 @@
             links.forEach(link => {
                 const videoId = link.split('/').pop();
                 const iframeLink = `https://ebd.cda.pl/620x395/${videoId}`;
-                const iframeCode = `<iframe src="${iframeLink}" width="620" height="395" frameborder="0" allowfullscreen></iframe>`;
+                const iframeCode = `<iframe src=\"${iframeLink}\" width=\"620\" height=\"395\" frameborder=\"0\" allowfullscreen=\"\"></iframe>`;
 
                 const iframeBox = document.createElement('div');
                 iframeBox.className = 'iframe-box';
