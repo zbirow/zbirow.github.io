@@ -7,11 +7,8 @@
     --accent-color-hover: #018786;
     --border-color: #333;
     --tag-python-bg: #306998;
-    --tag-powershell-bg: #012456;
-    --tag-api-bg: #6c5ce7;
-    --tag-windows-bg: #0078d6;
-    --tag-tools-bg: #808080;
-}
+    --tag-javascript-bg: #b39a56;
+    --tag-html-bg: #6c5ce7;
 
 body {
     background-color: var(--bg-color);
@@ -132,10 +129,8 @@ h2 {
 
 /* Kolory tagów */
 .tag.python { background-color: var(--tag-python-bg); }
-.tag.powershell { background-color: var(--tag-powershell-bg); }
-.tag.html { background-color: var(--tag-api-bg); }
-.tag.windows { background-color: var(--tag-windows-bg); }
-.tag.tools { background-color: var(--tag-tools-bg); }
+.tag.javascript { background-color: var(--tag-javascript-bg); }
+.tag.html { background-color: var(--tag-html-bg); }
 
 .project-link {
     align-self: flex-start; /* Przycisk na dole po lewej */
