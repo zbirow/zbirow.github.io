@@ -1,0 +1,176 @@
+:root {
+    --bg-color: #121212;
+    --card-bg-color: #1e1e1e;
+    --primary-text-color: #e0e0e0;
+    --secondary-text-color: #b3b3b3;
+    --accent-color: #03dac6;
+    --accent-color-hover: #018786;
+    --border-color: #333;
+    --tag-python-bg: #306998;
+    --tag-powershell-bg: #012456;
+    --tag-api-bg: #6c5ce7;
+    --tag-windows-bg: #0078d6;
+    --tag-tools-bg: #808080;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* --- Nagłówek --- */
+.header {
+    background-color: var(--card-bg-color);
+    padding: 60px 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-image img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-color);
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.subtitle {
+    color: var(--secondary-text-color);
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+.github-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.github-link:hover {
+    background-color: var(--accent-color-hover);
+}
+
+/* --- Główna treść --- */
+.main-content {
+    padding: 40px 0;
+}
+
+h2 {
+    text-align: center;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 2rem;
+    margin-bottom: 40px;
+    color: var(--accent-color);
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.project-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.project-card h3 {
+    margin-top: 0;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.project-card p {
+    color: var(--secondary-text-color);
+    flex-grow: 1; /* Sprawia, że opis zajmuje dostępną przestrzeń */
+}
+
+.tags {
+    margin: 15px 0;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #555;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Kolory tagów */
+.tag.python { background-color: var(--tag-python-bg); }
+.tag.powershell { background-color: var(--tag-powershell-bg); }
+.tag.html { background-color: var(--tag-api-bg); }
+.tag.windows { background-color: var(--tag-windows-bg); }
+.tag.tools { background-color: var(--tag-tools-bg); }
+
+.project-link {
+    align-self: flex-start; /* Przycisk na dole po lewej */
+    margin-top: auto; /* Wypycha przycisk na dół */
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.project-link:hover {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+}
+
+/* --- Stopka --- */
+.footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid var(--border-color);
+    color: var(--secondary-text-color);
+    font-size: 0.9rem;
+}
+
+/* --- Responsywność --- */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}
