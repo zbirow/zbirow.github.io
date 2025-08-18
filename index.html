@@ -1,26 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Recovery</title>
+    <title>zbirow - Portfolio Projektów</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username"><br><br>
-    
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password"><br><br>
-    
-    <button onclick="recoverPassword()">Log In</button><br><br>
-    
-    <label for="pin">PIN:</label>
-    <input type="text" id="pin" name="pin">
-    <button onclick="recoverByteString()">GO</button><br><br>
-    
-    <label for="recoveredByteString">Recovered Byte String:</label><br>
-    <textarea id="recoveredByteString" rows="5" cols="50"></textarea>
-    
-    <script src="script.js"></script>
+    <header class="header">
+        <div class="container">
+            <div class="profile-image">
+                <img src="https://github.com/zbirow.png" alt="Avatar zbirow">
+            </div>
+            <h1>zbirow</h1>
+              <p class="mt-2">Hi, I'm zbirow!</p>
+              <p> Passionate about Game Reverse Engineering.</p>
+              <p>Currently learning: Java, Kotlin, JavaScript, Python</p>
+              <p>Contact me on Discord: zbirow#6816</p>
+              <a href="https://github.com/zbirow" class="github-link" target="_blank">Check My GitHub</a>
+        </div>
+    </header>
+    <main class="main-content">
+        <div class="container">
+            <h2>My Repositories</h2>
+            <div class="projects-grid">
+                <!-- Projekt 1 -->
+                <div class="project-card">
+                    <h3>Yuffin-Archive</h3>
+                    <p>An efficient image archiving system with a GUI packer and a powerful, serverless web viewer.</p>
+                    <div class="tags">
+                        <span class="tag python">Python</span>
+                        <span class="tag html">HTML</span>
+                    </div>
+                    <a href="https://github.com/zbirow/Yuffin-Archive" class="project-link" target="_blank">View on GitHub</a>
+                </div>
+                <!-- Projekt 2 -->
+                <div class="project-card">
+                    <h3>Python-Codex</h3>
+                    <p>Your personal, portable library of Python scripts and projects, elegantly managed in a single, powerful vault file.</p>
+                    <div class="tags">
+                        <span class="tag python">Python</span>
+                    </div>
+                    <a href="https://github.com/zbirow/Python-Codex" class="project-link" target="_blank">View on GitHub</a>
+                </div>
+                <!-- Projekt 3 -->
+                <div class="project-card">
+                    <h3>Hunkfile-Viewer</h3>
+                    <p>Hunkfile Viewer (.hnk)</p>
+                    <div class="tags">
+                        <span class="tag python">Python</span>
+                    </div>
+                    <a href="https://github.com/zbirow/Hunkfile-Viewer" class="project-link" target="_blank">View on GitHub</a>
+                </div>
+                <!-- Projekt 4 -->
+                <div class="project-card">
+                    <h3>Rename-file</h3>
+                    <p>A simple GUI tool for batch renaming files by replacing text patterns.</p>
+                    <div class="tags">
+                      <span class="tag python">Python</span>
+                    </div>
+                    <a href="https://github.com/zbirow/Rename-file" class="project-link" target="_blank">View on GitHub</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 zbirow. Website Generate by Grok 🚀</p>
+        </div>
+    </footer>
 </body>
 </html>
