@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przeglądarka Wiadomości</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .loading-section {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-section {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            background: #2d2d2d;
+            border: 2px solid #404040;
+            border-radius: 10px;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0099ff;
+            box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.1);
+        }
+
+        .search-stats {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .tags-section {
+            margin-top: 25px;
+        }
+
+        .tags-title {
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag-filter {
+            background: #2d2d2d;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid #404040;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .tag-filter:hover {
+            background: #3d3d3d;
+            border-color: #555;
+        }
+
+        .tag-filter.active {
+            background: linear-gradient(135deg, #0099ff 0%, #0077cc 100%);
+            border-color: #0099ff;
+            color: white;
+        }
+
+        .messages-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .message-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .message-card:hover {
+            border-color: #404040;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-content {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .message-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .message-tag {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .highlight {
+            background: rgba(0, 153, 255, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #00d4ff;
+        }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .message-number {
+            color: #0099ff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-tag-count {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #0099ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #ff6b6b;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .retry-btn {
+            background: #0099ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .search-section {
+                padding: 20px;
+            }
+            
+            .message-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Przeglądarka Wiadomości</h1>
+            <p>Automatyczne wczytywanie danych z pliku JSON</p>
+        </div>
+
+        <div class="loading-section" id="loadingSection">
+            <div class="loading-spinner"></div>
+            <h3>Wczytywanie danych...</h3>
+            <p>Proszę czekać</p>
+        </div>
+
+        <div class="search-section" id="searchSection">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Wpisz szukaną frazę..."
+                >
+                <div class="search-stats" id="searchStats">
+                    Wczytywanie danych...
+                </div>
+            </div>
+
+            <div class="tags-section">
+                <div class="tags-title">🏷️ Filtruj po tagach:</div>
+                <div class="tags-container" id="tagsContainer">
+                    <!-- Tagi zostaną wczytane dynamicznie -->
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- Wiadomości zostaną wczytane dynamicznie -->
+        </div>
+    </div>
+
+    <script>
+        let messagesData = null;
+        let allMessages = [];
+        let currentSearchTerm = '';
+        let currentActiveTags = [];
+
+        // Funkcja do wczytywania pliku JSON przez XMLHttpRequest
+        function loadJSON() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'messages.json', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    const loadingSection = document.getElementById('loadingSection');
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            messagesData = JSON.parse(xhr.responseText);
+                            loadingSection.style.display = 'none';
+                            document.getElementById('searchSection').style.display = 'block';
+                            initializeData();
+                            document.getElementById('searchInput').focus();
+                        } catch (error) {
+                            showError('Błąd parsowania pliku JSON: ' + error.message);
+                        }
+                    } else {
+                        showError('Nie udało się wczytać pliku messages.json. Status: ' + xhr.status);
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                showError('Błąd połączenia. Sprawdź czy plik messages.json istnieje.');
+            };
+            
+            xhr.send();
+        }
+
+        // Funkcja wyświetlająca błąd
+        function showError(message) {
+            const loadingSection = document.getElementById('loadingSection');
+            loadingSection.innerHTML = `
+                <div class="error-message">
+                    <div style="font-size: 3em; margin-bottom: 15px;">❌</div>
+                    <h3>Błąd wczytywania</h3>
+                    <p>${message}</p>
+                    <button class="retry-btn" onclick="retryLoad()">🔄 Spróbuj ponownie</button>
+                </div>
+            `;
+        }
+
+        // Ponowne wczytanie
+        function retryLoad() {
+            const loadingSection = document.getElementById('loadingSection');
+            loadingSection.innerHTML = `
+                <div class="loading-spinner"></div>
+                <h3>Wczytywanie danych...</h3>
+                <p>Proszę czekać</p>
+            `;
+            loadJSON();
+        }
+
+        // Inicjalizacja - przetworzenie danych
+        function initializeData() {
+            if (!messagesData) return;
+            
+            allMessages = [];
+            let messageIndex = 1;
+            
+            messagesData.messages.forEach((messageGroup, groupIndex) => {
+                messageGroup.forEach((message, msgIndex) => {
+                    allMessages.push({
+                        id: `${groupIndex}-${msgIndex}`,
+                        number: messageIndex++,
+                        content: message.content,
+                        tags: message.tags || [],
+                        originalContent: message.content
+                    });
+                });
+            });
+            
+            displayMessages(allMessages);
+            initializeTags();
+            updateSearchStats(allMessages.length);
+        }
+
+        // Wyświetlanie wiadomości
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div>🔍</div>
+                        <h3>Brak wyników</h3>
+                        <p>Spróbuj zmienić kryteria wyszukiwania</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = messages.map(message => `
+                <div class="message-card">
+                    <div class="message-meta">
+                        <div class="message-number">Wiadomość #${message.number}</div>
+                        <div class="message-tag-count">${message.tags.length} tagów</div>
+                    </div>
+                    <div class="message-content">${highlightSearchTerms(message.content)}</div>
+                    ${message.tags.length > 0 ? `
+                        <div class="message-tags">
+                            ${message.tags.map(tag => `
+                                <div class="message-tag">${escapeHtml(tag)}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Inicjalizacja tagów
+        function initializeTags() {
+            const allTags = new Set();
+            allMessages.forEach(message => {
+                message.tags.forEach(tag => allTags.add(tag));
+            });
+
+            const tagsContainer = document.getElementById('tagsContainer');
+            const sortedTags = Array.from(allTags).sort();
+            
+            tagsContainer.innerHTML = `
+                <div class="tag-filter ${currentActiveTags.length === 0 ? 'active' : ''}" 
+                     onclick="clearTagFilters()">
+                    Wszystkie
+                </div>
+                ${sortedTags.map(tag => `
+                    <div class="tag-filter ${currentActiveTags.includes(tag) ? 'active' : ''}" 
+                         onclick="toggleTagFilter('${escapeHtml(tag)}')">
+                        ${escapeHtml(tag)}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // Filtrowanie wiadomości
+        function filterMessages() {
+            currentSearchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            let filteredMessages = allMessages;
+
+            // Filtrowanie po wyszukiwanej frazie
+            if (currentSearchTerm) {
+                filteredMessages = filteredMessages.filter(message => 
+                    message.originalContent.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+
+            // Filtrowanie po tagach
+            if (currentActiveTags.length > 0) {
+                filteredMessages = filteredMessages.filter(message =>
+                    currentActiveTags.every(tag => message.tags.includes(tag))
+                );
+            }
+
+            displayMessages(filteredMessages);
+            updateSearchStats(filteredMessages.length);
+        }
+
+        // Podświetlanie wyszukiwanych fraz
+        function highlightSearchTerms(content) {
+            if (!currentSearchTerm) {
+                return escapeHtml(content).replace(/\n/g, '<br>');
+            }
+
+            const escapedContent = escapeHtml(content);
+            const regex = new RegExp(`(${escapeRegex(currentSearchTerm)})`, 'gi');
+            return escapedContent.replace(regex, '<span class="highlight">$1</span>').replace(/\n/g, '<br>');
+        }
+
+        // Zarządzanie filtrami tagów
+        function toggleTagFilter(tag) {
+            const index = currentActiveTags.indexOf(tag);
+            if (index === -1) {
+                currentActiveTags.push(tag);
+            } else {
+                currentActiveTags.splice(index, 1);
+            }
+            filterMessages();
+            initializeTags();
+        }
+
+        function clearTagFilters() {
+            currentActiveTags = [];
+            filterMessages();
+            initializeTags();
+        }
+
+        // Aktualizacja statystyk wyszukiwania
+        function updateSearchStats(visibleCount) {
+            const stats = document.getElementById('searchStats');
+            const totalCount = allMessages.length;
+            
+            if (currentSearchTerm || currentActiveTags.length > 0) {
+                stats.innerHTML = `Znaleziono <strong>${visibleCount}</strong> z <strong>${totalCount}</strong> wiadomości 
+                                 ${currentSearchTerm ? `dla frazy "${currentSearchTerm}"` : ''}
+                                 ${currentActiveTags.length > 0 ? ` z tagami: ${currentActiveTags.join(', ')}` : ''}`;
+            } else {
+                stats.innerHTML = `Wyświetlono wszystkie <strong>${totalCount}</strong> wiadomości`;
+            }
+        }
+
+        // Funkcje pomocnicze
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterMessages);
+
+        // Obsługa klawiszy
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+F / Cmd+F do wyszukiwania
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            
+            // Escape czyści wyszukiwanie
+            if (e.key === 'Escape') {
+                document.getElementById('searchInput').value = '';
+                currentSearchTerm = '';
+                filterMessages();
+            }
+        });
+
+        // Automatyczne wczytanie przy starcie
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJSON();
+        });
+    </script>
+</body>
+</html>
