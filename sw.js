@@ -1,21 +1,19 @@
-/* sw.js - Service Worker P2P */
+/* sw.js - Service Worker P2P (FIXED CHUNK SIZE) */
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', () => self.clients.claim());
 
-// Limit kawałka dla stabilności mobile (1MB)
-const MAX_CHUNK_SIZE = 1024 * 1024; 
+// --- WAŻNA ZMIANA ---
+// WebRTC nie lubi dużych paczek. Zmniejszamy ze 1MB na 32KB.
+// To sprawi, że przeglądarka wyśle więcej zapytań, ale każde przejdzie gładko.
+const MAX_CHUNK_SIZE = 32 * 1024; 
 
-// Nasłuchiwanie żądań sieciowych
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    
-    // Jeśli przeglądarka prosi o nasz wirtualny plik
     if (url.pathname.includes('virtual-video.mp4')) {
         event.respondWith(handleVideoRequest(event.request));
     }
 });
 
-// Komunikacja z index.html
 let pendingRequests = {}; 
 
 self.addEventListener('message', event => {
@@ -30,35 +28,31 @@ self.addEventListener('message', event => {
 
 async function handleVideoRequest(request) {
     const range = request.headers.get('range');
-    
-    // 1. Pytamy główny wątek o rozmiar pliku
     const totalSize = await askMainForSize();
     if (!totalSize) return new Response("File not ready", {status: 404});
 
     let start = 0;
     let end = totalSize - 1;
 
-    // 2. Parsowanie nagłówka Range (np. bytes=0-)
     if (range) {
         const parts = range.replace(/bytes=/, "").split("-");
         start = parseInt(parts[0], 10);
         if (parts[1]) end = parseInt(parts[1], 10);
     }
 
-    // 3. Ograniczenie wielkości żądania (Dla telefonów!)
+    // Ograniczamy żądanie do bezpiecznego rozmiaru (32KB)
     if (end - start >= MAX_CHUNK_SIZE) {
         end = start + MAX_CHUNK_SIZE - 1;
     }
 
-    // 4. Pobranie danych przez P2P (via index.html)
     const chunkId = Date.now() + Math.random();
     const dataBuffer = await askMainForData(start, end, chunkId);
 
     if (!dataBuffer) {
+        // Jeśli tu jest błąd, to znaczy że P2P zerwało
         return new Response("Timeout/P2P Error", { status: 500 });
     }
 
-    // 5. Zwracamy odpowiedź HTTP 206
     return new Response(dataBuffer, {
         status: 206,
         headers: {
@@ -75,7 +69,7 @@ function askMainForSize() {
         const id = 'size_' + Math.random();
         pendingRequests[id] = resolve;
         sendMessageToMain({ type: 'GET_SIZE', id: id });
-        setTimeout(() => resolve(null), 2000); // Timeout
+        setTimeout(() => resolve(null), 3000); 
     });
 }
 
@@ -83,8 +77,14 @@ function askMainForData(start, end, reqId) {
     return new Promise(resolve => {
         pendingRequests[reqId] = resolve;
         sendMessageToMain({ type: 'GET_DATA', start, end, id: reqId });
-        // Timeout 15s na pobranie kawałka
-        setTimeout(() => { if(pendingRequests[reqId]) resolve(null); }, 15000); 
+        
+        // Zwiększyłem timeout do 30 sekund na wszelki wypadek
+        setTimeout(() => { 
+            if(pendingRequests[reqId]) {
+                console.log("TIMEOUT żądania P2P:", reqId);
+                resolve(null); 
+            }
+        }, 30000); 
     });
 }
 
