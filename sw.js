@@ -1,11 +1,10 @@
-/* sw.js - Service Worker P2P (FIXED CHUNK SIZE) */
+/* sw.js - Service Worker P2P (TURBO VERSION) */
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', () => self.clients.claim());
 
-// --- WAŻNA ZMIANA ---
-// WebRTC nie lubi dużych paczek. Zmniejszamy ze 1MB na 32KB.
-// To sprawi, że przeglądarka wyśle więcej zapytań, ale każde przejdzie gładko.
-const MAX_CHUNK_SIZE = 32 * 1024; 
+// 512KB - Idealny balans dla płynnego HD. 
+// WebRTC tego nie przełknie w całości, ale index.html to potnie.
+const MAX_CHUNK_SIZE = 512 * 1024; 
 
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
@@ -40,7 +39,6 @@ async function handleVideoRequest(request) {
         if (parts[1]) end = parseInt(parts[1], 10);
     }
 
-    // Ograniczamy żądanie do bezpiecznego rozmiaru (32KB)
     if (end - start >= MAX_CHUNK_SIZE) {
         end = start + MAX_CHUNK_SIZE - 1;
     }
@@ -48,10 +46,7 @@ async function handleVideoRequest(request) {
     const chunkId = Date.now() + Math.random();
     const dataBuffer = await askMainForData(start, end, chunkId);
 
-    if (!dataBuffer) {
-        // Jeśli tu jest błąd, to znaczy że P2P zerwało
-        return new Response("Timeout/P2P Error", { status: 500 });
-    }
+    if (!dataBuffer) return new Response("Timeout", { status: 504 });
 
     return new Response(dataBuffer, {
         status: 206,
@@ -69,7 +64,7 @@ function askMainForSize() {
         const id = 'size_' + Math.random();
         pendingRequests[id] = resolve;
         sendMessageToMain({ type: 'GET_SIZE', id: id });
-        setTimeout(() => resolve(null), 3000); 
+        setTimeout(() => resolve(null), 3000);
     });
 }
 
@@ -77,14 +72,8 @@ function askMainForData(start, end, reqId) {
     return new Promise(resolve => {
         pendingRequests[reqId] = resolve;
         sendMessageToMain({ type: 'GET_DATA', start, end, id: reqId });
-        
-        // Zwiększyłem timeout do 30 sekund na wszelki wypadek
-        setTimeout(() => { 
-            if(pendingRequests[reqId]) {
-                console.log("TIMEOUT żądania P2P:", reqId);
-                resolve(null); 
-            }
-        }, 30000); 
+        // Dłuższy timeout na przesłanie 512KB
+        setTimeout(() => { if(pendingRequests[reqId]) resolve(null); }, 45000); 
     });
 }
 
