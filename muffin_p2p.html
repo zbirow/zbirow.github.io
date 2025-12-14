@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P VIRTUAL SERVER</title>
+    <style>
+        body {
+            font-family: monospace; background: #111; color: #0f0;
+            max-width: 900px; margin: 0 auto; padding: 20px;
+        }
+        h1 { border-bottom: 2px solid #0f0; padding-bottom: 10px; }
+        .panel { border: 1px solid #333; padding: 15px; margin-bottom: 20px; background: #000; }
+        textarea { width: 100%; height: 50px; background: #222; color: #fff; border: 1px solid #555; }
+        button { background: #003300; color: #0f0; border: 1px solid #0f0; padding: 10px; cursor: pointer; width: 100%; margin-top: 5px;}
+        button:hover { background: #0f0; color: #000; }
+        video { width: 100%; border: 1px solid #333; margin-top: 10px; }
+        .hidden { display: none; }
+        #logs { color: #666; font-size: 11px; height: 100px; overflow-y: scroll; border-top: 1px dashed #333; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>P2P SEEKING (SERVICE WORKER)</h1>
+
+    <!-- SETUP -->
+    <div id="setup" class="panel">
+        <input type="password" id="secret-key" value="tajne123" placeholder="Hasło..." style="width:100%; padding:5px; margin-bottom:10px;">
+        <div style="display:flex; gap:10px;">
+            <button onclick="initHost()">HOST (PLIK)</button>
+            <button onclick="initClient()">KLIENT (ODTWARZACZ)</button>
+        </div>
+    </div>
+
+    <!-- HOST UI -->
+    <div id="host-ui" class="panel hidden">
+        <h3>SERWER PLIKÓW</h3>
+        <input type="file" id="file-input">
+        <p>1. Wyślij Ofertę:</p>
+        <button onclick="createOffer()">GENERUJ OFERTĘ</button>
+        <textarea id="host-offer-out" readonly></textarea>
+        <p>2. Wklej Odpowiedź:</p>
+        <textarea id="host-answer-in"></textarea>
+        <button onclick="finalizeConnection()">POŁĄCZ</button>
+    </div>
+
+    <!-- CLIENT UI -->
+    <div id="client-ui" class="panel hidden">
+        <h3>ODTWARZACZ</h3>
+        <p>1. Wklej Ofertę:</p>
+        <textarea id="client-offer-in"></textarea>
+        <button onclick="createAnswer()">GENERUJ ODPOWIEDŹ</button>
+        <p>2. Wyślij Odpowiedź:</p>
+        <textarea id="client-answer-out" readonly></textarea>
+        
+        <!-- VIDEO PLAYER -->
+        <div id="player-box" class="hidden">
+            <h2 style="color:white">KINO P2P</h2>
+            <video id="video-player" controls playsinline></video>
+        </div>
+    </div>
+
+    <div id="logs">Logi...</div>
+
+    <!-- KOD SERVICE WORKERA (DYNAMMICZNY BLOB) -->
+    <script id="sw-code" type="javascript/worker">
+        self.addEventListener('install', () => self.skipWaiting());
+        self.addEventListener('activate', () => self.clients.claim());
+
+        // Przechwytujemy żądania do wirtualnego pliku
+        self.addEventListener('fetch', event => {
+            const url = new URL(event.request.url);
+            if (url.pathname.endsWith('/virtual-video.mp4')) {
+                event.respondWith(handleVideoRequest(event.request));
+            }
+        });
+
+        // Kolejka oczekujących żądań (Promise resolverów)
+        let pendingRequests = {}; 
+
+        // Komunikacja z głównym wątkiem (stroną)
+        self.addEventListener('message', event => {
+            const msg = event.data;
+            if (msg.type === 'DATA_CHUNK') {
+                if (pendingRequests[msg.id]) {
+                    pendingRequests[msg.id](msg.buffer); // Rozwiązujemy Promise z danymi
+                    delete pendingRequests[msg.id];
+                }
+            }
+        });
+
+        async function handleVideoRequest(request) {
+            // Analiza nagłówka Range (np. "bytes=0-")
+            const range = request.headers.get('range');
+            const totalSize = await askMainForSize(); // Pytamy główny wątek o rozmiar pliku
+            
+            let start = 0;
+            let end = totalSize - 1;
+
+            if (range) {
+                const parts = range.replace(/bytes=/, "").split("-");
+                start = parseInt(parts[0], 10);
+                if (parts[1]) end = parseInt(parts[1], 10);
+            }
+
+            // Przeglądarki często proszą o małe kawałki na start, a potem większe
+            // Musimy pobrać te dane przez P2P
+            const chunkId = Date.now() + Math.random();
+            const dataBuffer = await askMainForData(start, end, chunkId);
+
+            // Zwracamy odpowiedź HTTP 206 (Partial Content)
+            return new Response(dataBuffer, {
+                status: 206,
+                headers: {
+                    'Content-Range': `bytes ${start}-${start + dataBuffer.byteLength - 1}/${totalSize}`,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Length': dataBuffer.byteLength,
+                    'Content-Type': 'video/mp4'
+                }
+            });
+        }
+
+        // Helper: Pytanie o rozmiar pliku
+        function askMainForSize() {
+            return new Promise(resolve => {
+                const id = 'size_' + Math.random();
+                pendingRequests[id] = resolve;
+                sendMessageToMain({ type: 'GET_SIZE', id: id });
+            });
+        }
+
+        // Helper: Pytanie o dane (bajty)
+        function askMainForData(start, end, reqId) {
+            return new Promise(resolve => {
+                pendingRequests[reqId] = resolve;
+                sendMessageToMain({ type: 'GET_DATA', start, end, id: reqId });
+            });
+        }
+
+        function sendMessageToMain(msg) {
+            self.clients.matchAll().then(clients => {
+                clients.forEach(client => client.postMessage(msg));
+            });
+        }
+    </script>
+
+    <!-- LOGIKA GŁÓWNA -->
+    <script>
+        const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+        let pc, dataChannel;
+        let file = null; // Host
+        let fileSize = 0; // Client
+        let swRegistration = null; // Client
+
+        function log(msg) { document.getElementById('logs').innerText = `> ${msg}\n` + document.getElementById('logs').innerText; }
+
+        function initHost() {
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('host-ui').classList.remove('hidden');
+            setupPeer('host');
+            
+            document.getElementById('file-input').addEventListener('change', e => {
+                file = e.target.files[0];
+                log(`Załadowano: ${file.name} (${file.size} B)`);
+            });
+        }
+
+        async function initClient() {
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('client-ui').classList.remove('hidden');
+            setupPeer('client');
+            
+            // Rejestracja Service Workera z Bloba (żeby było w jednym pliku)
+            const swContent = document.getElementById('sw-code').textContent;
+            const blob = new Blob([swContent], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            try {
+                swRegistration = await navigator.serviceWorker.register(swUrl);
+                log("Service Worker zarejestrowany! Gotowy do oszukiwania przeglądarki.");
+                
+                // Nasłuch wiadomości od Service Workera
+                navigator.serviceWorker.addEventListener('message', event => {
+                    handleSwMessage(event.data);
+                });
+            } catch (err) {
+                alert("Błąd SW: " + err + ". Upewnij się, że używasz HTTPS lub localhost.");
+            }
+        }
+
+        // --- WEBRTC ---
+        function setupPeer(role) {
+            pc = new RTCPeerConnection(config);
+            
+            pc.oniceconnectionstatechange = () => {
+                log(`Stan połączenia: ${pc.iceConnectionState}`);
+                if(pc.iceConnectionState === 'connected' && role === 'client') {
+                    // Po połączeniu Klient od razu pyta o metadane
+                    setTimeout(() => dataChannel.send(JSON.stringify({type: 'META_REQ'})), 1000);
+                }
+            };
+
+            if (role === 'host') {
+                dataChannel = pc.createDataChannel("p2p-stream");
+                dataChannel.onmessage = handleHostData;
+            } else {
+                pc.ondatachannel = e => {
+                    dataChannel = e.channel;
+                    dataChannel.onmessage = handleClientData;
+                };
+            }
+        }
+
+        // --- HOST LOGIC ---
+        function handleHostData(event) {
+            const msg = JSON.parse(event.data);
+            
+            if (msg.type === 'META_REQ') {
+                if(!file) return;
+                dataChannel.send(JSON.stringify({ type: 'META_RES', size: file.size }));
+                log("Wysłano informację o rozmiarze pliku.");
+            }
+            else if (msg.type === 'READ_REQ') {
+                // Czytanie konkretnego zakresu bajtów (SEEKING support!)
+                const reader = new FileReader();
+                reader.onload = e => {
+                    // Wysyłamy binarkę. Musimy dodać ID żądania, żeby Klient wiedział co to.
+                    // WebRTC DataChannel wysyła stringi lub bufory.
+                    // Żeby nie komplikować, wysyłamy: 4 bajty ID (Uint32) + Dane
+                    const data = e.target.result;
+                    const header = new ArrayBuffer(50); // Nadmiarowe miejsce na ID (tekstowe)
+                    const view = new DataView(header);
+                    // Prosty protokół: JSON header + binarka w dwóch wiadomościach dla prostoty
+                    
+                    dataChannel.send(JSON.stringify({ type: 'CHUNK_META', id: msg.id }));
+                    dataChannel.send(data);
+                    
+                    log(`Wysłano bajty: ${msg.start}-${msg.end}`);
+                };
+                const blobSlice = file.slice(msg.start, msg.end + 1);
+                reader.readAsArrayBuffer(blobSlice);
+            }
+        }
+
+        // --- CLIENT LOGIC ---
+        let currentChunkId = null; // Czekamy na dane dla tego ID
+
+        function handleClientData(event) {
+            const data = event.data;
+
+            if (typeof data === 'string') {
+                const msg = JSON.parse(data);
+                if (msg.type === 'META_RES') {
+                    fileSize = msg.size;
+                    log(`Otrzymano rozmiar: ${fileSize}. Startuję wideo.`);
+                    startVideoPlayback();
+                } else if (msg.type === 'CHUNK_META') {
+                    currentChunkId = msg.id;
+                }
+            } else {
+                // To są dane binarne. Przekazujemy je do Service Workera
+                if (currentChunkId) {
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'DATA_CHUNK',
+                            id: currentChunkId,
+                            buffer: data
+                        }, [data]); // Transferable (szybciej)
+                    }
+                    currentChunkId = null;
+                }
+            }
+        }
+
+        function handleSwMessage(msg) {
+            if (msg.type === 'GET_SIZE') {
+                // SW pyta o rozmiar. Jeśli jeszcze nie mamy, czekamy.
+                const check = setInterval(() => {
+                    if (fileSize > 0) {
+                        clearInterval(check);
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'DATA_CHUNK', id: msg.id, buffer: fileSize
+                        });
+                    }
+                }, 100);
+            }
+            else if (msg.type === 'GET_DATA') {
+                // SW chce dane bo user przewinął pasek!
+                // Wysyłamy żądanie do Hosta przez P2P
+                log(`Odtwarzacz chce: ${msg.start}-${msg.end}`);
+                dataChannel.send(JSON.stringify({
+                    type: 'READ_REQ',
+                    start: msg.start,
+                    end: msg.end,
+                    id: msg.id
+                }));
+            }
+        }
+
+        function startVideoPlayback() {
+            document.getElementById('player-box').classList.remove('hidden');
+            const video = document.getElementById('video-player');
+            // To URL wchodzi w interakcję z naszym Service Workerem
+            video.src = '/virtual-video.mp4'; 
+        }
+
+        // --- KRYPTOGRAFIA (Standardowa) ---
+        async function getKeys() {
+            const pass = document.getElementById('secret-key').value;
+            const enc = new TextEncoder();
+            const keyMat = await crypto.subtle.importKey("raw", enc.encode(pass), {name:"PBKDF2"}, false, ["deriveKey"]);
+            const salt = new Uint8Array(16); // Dla demo stała sól (niebezpieczne na prod, tu ok)
+            return window.crypto.subtle.deriveKey({name: "PBKDF2", salt: salt, iterations: 1000, hash: "SHA-256"}, keyMat, {name: "AES-GCM", length: 256}, false, ["encrypt", "decrypt"]);
+        }
+        async function encrypt(text) {
+            const key = await getKeys();
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const data = await window.crypto.subtle.encrypt({name:"AES-GCM", iv:iv}, key, enc.encode(text));
+            const buff = new Uint8Array(iv.byteLength + data.byteLength);
+            buff.set(iv,0); buff.set(new Uint8Array(data),12);
+            return btoa(String.fromCharCode(...buff));
+        }
+        async function decrypt(b64) {
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+            const iv = bytes.slice(0,12);
+            const data = bytes.slice(12);
+            const key = await getKeys();
+            const dec = await window.crypto.subtle.decrypt({name:"AES-GCM", iv:iv}, key, data);
+            return new TextDecoder().decode(dec);
+        }
+
+        // --- HANDSHAKE ---
+        async function createOffer() {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            pc.onicecandidate = async e => {
+                if(!e.candidate) document.getElementById('host-offer-out').value = await encrypt(JSON.stringify(pc.localDescription));
+            }
+        }
+        async function createAnswer() {
+            const txt = document.getElementById('client-offer-in').value;
+            const desc = JSON.parse(await decrypt(txt));
+            await pc.setRemoteDescription(desc);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            pc.onicecandidate = async e => {
+                if(!e.candidate) document.getElementById('client-answer-out').value = await encrypt(JSON.stringify(pc.localDescription));
+            }
+        }
+        async function finalizeConnection() {
+            const txt = document.getElementById('host-answer-in').value;
+            const desc = JSON.parse(await decrypt(txt));
+            await pc.setRemoteDescription(desc);
+        }
+
+    </script>
+</body>
+</html>
