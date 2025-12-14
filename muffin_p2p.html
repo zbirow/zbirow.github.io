@@ -3,69 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P STREAM 1.4</title>
+    <title>Muffin P2P 1.5</title>
     <style>
-        body {
-            font-family: monospace; background: #000; color: #0f0;
-            margin: 0; padding: 10px; padding-bottom: 50px;
-        }
-        h1 { border-bottom: 1px solid #0f0; font-size: 18px; text-align: center;}
+        body { font-family: monospace; background: #000; color: #0f0; margin: 0; padding: 10px; padding-bottom: 50px; }
         .panel { border: 1px solid #333; padding: 10px; margin-bottom: 15px; background: #111; }
         textarea { width: 100%; height: 60px; background: #222; color: #fff; border: 1px solid #555; font-size:10px; }
-        button { background: #004400; color: #fff; border: 1px solid #0f0; padding: 12px; cursor: pointer; width: 100%; margin-top: 5px; font-weight:bold;}
-        input { width: 100%; padding: 10px; box-sizing: border-box; background: #222; color: white; border: 1px solid #555; margin-bottom: 5px;}
-        
-        #player-box { position: relative; width: 100%; margin-top: 10px; }
+        button { background: #005500; color: #fff; border: 1px solid #0f0; padding: 12px; cursor: pointer; width: 100%; margin-top: 5px; font-weight:bold;}
+        #player-box { margin-top: 10px; }
         video { width: 100%; border: 1px solid #333; background: #000; max-height: 80vh; }
         .hidden { display: none; }
-        #logs { color: #888; font-size: 10px; height: 80px; overflow-y: scroll; border-top: 1px dashed #333; margin-top: 20px; word-break: break-all;}
+        #logs { color: #888; font-size: 10px; height: 100px; overflow-y: scroll; border-top: 1px dashed #333; margin-top: 20px; word-break: break-all;}
     </style>
 </head>
 <body>
 
-    <h1>P2P STREAM (SW.JS VERSION)</h1>
+    <h1 style="text-align:center; border-bottom:1px solid #0f0;">P2P TURBO (CHUNKED)</h1>
 
     <div id="setup" class="panel">
-        <input type="password" id="secret-key" value="tajne123" placeholder="Hasło...">
-        <div style="display:flex; gap:10px;">
-            <button onclick="initHost()">HOST (Nadaję)</button>
-            <button onclick="initClient()">KLIENT (Oglądam)</button>
+        <input type="password" id="secret-key" value="tajne123" placeholder="Hasło..." style="width:100%; padding:10px; box-sizing:border-box; background:#222; color:white; border:1px solid #555;">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="initHost()">HOST</button>
+            <button onclick="initClient()">KLIENT</button>
         </div>
     </div>
 
     <div id="host-ui" class="panel hidden">
         <h3>HOST</h3>
         <input type="file" id="file-input">
-        <p>1. Oferta:</p>
-        <button onclick="createOffer()">GENERUJ</button>
+        <button onclick="createOffer()">1. GENERUJ OFERTĘ</button>
         <textarea id="host-offer-out" readonly onclick="this.select()"></textarea>
-        <p>2. Odpowiedź:</p>
-        <textarea id="host-answer-in"></textarea>
-        <button onclick="finalizeConnection()">POŁĄCZ</button>
+        <textarea id="host-answer-in" placeholder="Tu wklej odpowiedź klienta..."></textarea>
+        <button onclick="finalizeConnection()">2. POŁĄCZ</button>
     </div>
 
     <div id="client-ui" class="panel hidden">
         <h3>KLIENT</h3>
-        <p>1. Oferta Hosta:</p>
-        <textarea id="client-offer-in"></textarea>
-        <button onclick="createAnswer()">GENERUJ ODPOWIEDŹ</button>
-        <p>2. Dla Hosta:</p>
+        <textarea id="client-offer-in" placeholder="Tu wklej ofertę hosta..."></textarea>
+        <button onclick="createAnswer()">1. GENERUJ ODPOWIEDŹ</button>
         <textarea id="client-answer-out" readonly onclick="this.select()"></textarea>
         
         <div id="player-box" class="hidden">
-            <p style="color:yellow; font-size:12px;">Status: <span id="status-text">Czekam...</span></p>
+            <p>Status: <span id="status-text" style="color:yellow">Ładowanie...</span></p>
             <video id="video-player" controls playsinline webkit-playsinline></video>
-            <button onclick="forcePlay()" style="margin-top:5px; background:#333;">WYMUŚ START</button>
+            <button onclick="forcePlay()" style="background:#333;">WYMUŚ PLAY</button>
         </div>
     </div>
 
-    <div id="logs">Logi...</div>
+    <div id="logs">Logi systemu...</div>
 
     <script>
         const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+        const CHUNK_MTU = 16 * 1024; // 16KB - Bezpieczny limit pojedynczej paczki WebRTC
+
         let pc, dataChannel;
         let file = null; 
         let fileSize = 0; 
+
+        // --- ZMIENNE DO SKLEJANIA PACZEK (KLIENT) ---
+        let incomingChunks = [];
+        let expectedSize = 0;
+        let currentReceived = 0;
+        let currentRequestId = null;
 
         function log(msg) { 
             console.log(msg);
@@ -79,7 +77,7 @@
             setupPeer('host');
             document.getElementById('file-input').addEventListener('change', e => {
                 file = e.target.files[0];
-                log(`Plik: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`);
+                log(`Plik gotowy: ${file.name}`);
             });
         }
 
@@ -88,96 +86,118 @@
             document.getElementById('client-ui').classList.remove('hidden');
             setupPeer('client');
             
-            // --- ZMIANA TUTAJ: Ładujemy prawdziwy plik sw.js ---
             try {
-                // Rejestrujemy plik zewnętrzny sw.js
-                // scope: './' zapewnia, że SW kontroluje tę stronę
                 const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
-                log("Service Worker (sw.js) zarejestrowany poprawnie!");
-                
-                // Czekamy aż będzie aktywny
                 await navigator.serviceWorker.ready;
-                
                 navigator.serviceWorker.addEventListener('message', event => handleSwMessage(event.data));
-            } catch (err) {
-                log("BŁĄD SW: " + err);
-                alert("Nie udało się załadować sw.js. Upewnij się, że plik sw.js jest na GitHubie obok index.html!");
-            }
+                log("Service Worker Turbo: OK");
+            } catch (err) { alert("SW Error: " + err); }
         }
 
-        // --- WEBRTC ---
         function setupPeer(role) {
             pc = new RTCPeerConnection(config);
-            
             pc.oniceconnectionstatechange = () => {
-                log(`ICE: ${pc.iceConnectionState}`);
-                // To tylko logi, nie sterujemy tu logiką, bo to bywa zawodne
+                if(pc.iceConnectionState === 'connected') {
+                    if (role === 'client') {
+                         document.getElementById('status-text').innerText = "POŁĄCZONO. Bufrowanie...";
+                    }
+                }
             };
 
             if (role === 'host') {
-                // HOST otwiera kanał
-                dataChannel = pc.createDataChannel("p2p-stream");
+                dataChannel = pc.createDataChannel("p2p-stream", { ordered: true });
                 dataChannel.onmessage = handleHostData;
-                dataChannel.onopen = () => log("HOST: Kanał danych otwarty. Czekam na klienta.");
+                dataChannel.onopen = () => log("HOST: Kanał otwarty.");
             } else {
-                // KLIENT odbiera kanał
                 pc.ondatachannel = e => {
                     dataChannel = e.channel;
                     dataChannel.onmessage = handleClientData;
-                    
-                    // KLUCZOWA ZMIANA: Czekamy na zdarzenie 'open' na samym kanale
-                    if (dataChannel.readyState === 'open') {
-                        log("Kanał już otwarty! Wysyłam prośbę o plik...");
+                    dataChannel.onopen = () => {
+                        log("KLIENT: Kanał otwarty. Startuję.");
                         dataChannel.send(JSON.stringify({type: 'META_REQ'}));
-                    } else {
-                        dataChannel.onopen = () => {
-                            log("Kanał właśnie się otworzył! Wysyłam prośbę o plik...");
-                            dataChannel.send(JSON.stringify({type: 'META_REQ'}));
-                        };
-                    }
+                    };
                 };
             }
         }
 
-        // --- HOST LOGIC ---
+        // --- HOST LOGIC (SZATKOWNICA) ---
         function handleHostData(event) {
             const msg = JSON.parse(event.data);
+            
             if (msg.type === 'META_REQ') {
-                if(!file) return log("BŁĄD: Host nie wybrał pliku!");
+                if(!file) return;
                 dataChannel.send(JSON.stringify({ type: 'META_RES', size: file.size }));
             }
             else if (msg.type === 'READ_REQ') {
+                // Czytamy duży blok (np. 512KB)
                 const reader = new FileReader();
                 reader.onload = e => {
-                    try {
-                        dataChannel.send(JSON.stringify({ type: 'CHUNK_META', id: msg.id }));
-                        dataChannel.send(e.target.result);
-                    } catch(err) { log("Błąd wysyłania: " + err); }
+                    const fullBuffer = e.target.result;
+                    // Informujemy klienta: "Idzie paczka ID, rozmiar X"
+                    dataChannel.send(JSON.stringify({ 
+                        type: 'CHUNK_START', 
+                        id: msg.id, 
+                        totalSize: fullBuffer.byteLength 
+                    }));
+
+                    // Tniemy na plasterki 16KB i wysyłamy w pętli
+                    let offset = 0;
+                    while(offset < fullBuffer.byteLength) {
+                        const slice = fullBuffer.slice(offset, offset + CHUNK_MTU);
+                        dataChannel.send(slice);
+                        offset += CHUNK_MTU;
+                    }
+                    // log(`Wysłano: ${fullBuffer.byteLength} B w kawałkach.`);
                 };
                 reader.readAsArrayBuffer(file.slice(msg.start, msg.end + 1));
             }
         }
 
-        // --- CLIENT LOGIC ---
-        let currentChunkId = null;
-
+        // --- CLIENT LOGIC (SKLEJARKA) ---
         function handleClientData(event) {
             const data = event.data;
+
+            // 1. Jeśli to tekst (JSON)
             if (typeof data === 'string') {
                 const msg = JSON.parse(data);
+                
                 if (msg.type === 'META_RES') {
                     fileSize = msg.size;
-                    log(`Rozmiar: ${fileSize}. Startuję wideo.`);
                     startVideoPlayback();
-                } else if (msg.type === 'CHUNK_META') {
-                    currentChunkId = msg.id;
+                } 
+                else if (msg.type === 'CHUNK_START') {
+                    // Host zapowiada nadejście danych
+                    currentRequestId = msg.id;
+                    expectedSize = msg.totalSize;
+                    currentReceived = 0;
+                    incomingChunks = []; // Czyścimy bufor
+                    // log(`Odbieranie bloku: ${expectedSize} B`);
                 }
-            } else {
-                if (currentChunkId && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'DATA_CHUNK', id: currentChunkId, buffer: data
-                    }, [data]); 
-                    currentChunkId = null;
+                return;
+            }
+
+            // 2. Jeśli to binarka (ArrayBuffer) - to są plasterki
+            if (currentRequestId) {
+                incomingChunks.push(data);
+                currentReceived += data.byteLength;
+
+                if (currentReceived >= expectedSize) {
+                    // Mamy całość! Sklejamy.
+                    const finalBlob = new Blob(incomingChunks);
+                    finalBlob.arrayBuffer().then(buffer => {
+                        // Wysyłamy gotową szynkę do Service Workera
+                        if (navigator.serviceWorker.controller) {
+                            navigator.serviceWorker.controller.postMessage({
+                                type: 'DATA_CHUNK',
+                                id: currentRequestId,
+                                buffer: buffer
+                            }, [buffer]);
+                        }
+                    });
+                    
+                    // Reset stanu
+                    currentRequestId = null;
+                    incomingChunks = [];
                 }
             }
         }
@@ -204,16 +224,14 @@
             const video = document.getElementById('video-player');
             video.src = 'virtual-video.mp4'; 
             video.load();
-            video.onerror = () => log("Błąd wideo. Spróbuj 'Wymuś Start'.");
         }
 
         function forcePlay() {
             const v = document.getElementById('video-player');
-            v.load(); 
-            v.play().catch(e => alert("Kliknij jeszcze raz! " + e));
+            v.play().catch(e => alert("Błąd: " + e));
         }
 
-        // --- KRYPTO (Te same funkcje co zawsze) ---
+        // --- KRYPTO ---
         async function getKeys() {
             const pass = document.getElementById('secret-key').value;
             const enc = new TextEncoder();
@@ -239,7 +257,7 @@
                 const key = await getKeys();
                 const dec = await window.crypto.subtle.decrypt({name:"AES-GCM", iv:iv}, key, data);
                 return new TextDecoder().decode(dec);
-            } catch(e) { alert("Błąd hasła!"); return ""; }
+            } catch(e) { alert("Złe hasło!"); return ""; }
         }
 
         // --- HANDSHAKE ---
