@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P STREAM (FINAL)</title>
+    <title>P2P STREAM 1.4</title>
     <style>
         body {
             font-family: monospace; background: #000; color: #0f0;
@@ -108,23 +108,33 @@
         // --- WEBRTC ---
         function setupPeer(role) {
             pc = new RTCPeerConnection(config);
+            
             pc.oniceconnectionstatechange = () => {
                 log(`ICE: ${pc.iceConnectionState}`);
-                if(pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-                    if (role === 'client') {
-                         document.getElementById('status-text').innerText = "POŁĄCZONO! Inicjacja...";
-                         setTimeout(() => dataChannel.send(JSON.stringify({type: 'META_REQ'})), 500);
-                    }
-                }
+                // To tylko logi, nie sterujemy tu logiką, bo to bywa zawodne
             };
 
             if (role === 'host') {
+                // HOST otwiera kanał
                 dataChannel = pc.createDataChannel("p2p-stream");
                 dataChannel.onmessage = handleHostData;
+                dataChannel.onopen = () => log("HOST: Kanał danych otwarty. Czekam na klienta.");
             } else {
+                // KLIENT odbiera kanał
                 pc.ondatachannel = e => {
                     dataChannel = e.channel;
                     dataChannel.onmessage = handleClientData;
+                    
+                    // KLUCZOWA ZMIANA: Czekamy na zdarzenie 'open' na samym kanale
+                    if (dataChannel.readyState === 'open') {
+                        log("Kanał już otwarty! Wysyłam prośbę o plik...");
+                        dataChannel.send(JSON.stringify({type: 'META_REQ'}));
+                    } else {
+                        dataChannel.onopen = () => {
+                            log("Kanał właśnie się otworzył! Wysyłam prośbę o plik...");
+                            dataChannel.send(JSON.stringify({type: 'META_REQ'}));
+                        };
+                    }
                 };
             }
         }
