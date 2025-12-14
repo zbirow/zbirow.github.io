@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Muffin P2P 1.6</title>
+    <title>Muffin P2P 1.7</title>
     <style>
         body { font-family: monospace; background: #000; color: #0f0; margin: 0; padding: 10px; padding-bottom: 50px; }
         .panel { border: 1px solid #333; padding: 10px; margin-bottom: 15px; background: #111; }
@@ -17,7 +17,7 @@
 </head>
 <body>
 
-    <h1 style="text-align:center; border-bottom:1px solid #0f0;">P2P STABLE v2</h1>
+    <h1 style="text-align:center; border-bottom:1px solid #0f0;">P2P INSTANT META</h1>
 
     <div id="setup" class="panel">
         <input type="password" id="secret-key" value="tajne123" placeholder="Hasło...">
@@ -30,7 +30,7 @@
     <div id="host-ui" class="panel hidden">
         <h3>HOST</h3>
         <input type="file" id="file-input">
-        <button onclick="createOffer()">1. GENERUJ OFERTĘ</button>
+        <button onclick="createOffer()">1. GENERUJ OFERTĘ (Z Plikiem)</button>
         <textarea id="host-offer-out" readonly onclick="this.select()"></textarea>
         <textarea id="host-answer-in" placeholder="Tu wklej odpowiedź..."></textarea>
         <button onclick="finalizeConnection()">2. POŁĄCZ</button>
@@ -43,7 +43,7 @@
         <textarea id="client-answer-out" readonly onclick="this.select()"></textarea>
         
         <div id="player-box" class="hidden">
-            <p>Status: <span id="status-text" style="color:yellow">Inicjacja...</span></p>
+            <p>Status: <span id="status-text" style="color:yellow">Czekam na ofertę...</span></p>
             <video id="video-player" controls playsinline webkit-playsinline></video>
         </div>
     </div>
@@ -52,13 +52,13 @@
 
     <script>
         const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
-        const CHUNK_MTU = 16 * 1024; // 16KB per WebRTC packet
+        const CHUNK_MTU = 16 * 1024; 
 
         let pc, dataChannel;
         let file = null; 
+        
+        // Klient
         let fileSize = 0; 
-
-        // Client buffer
         let incomingChunks = [];
         let currentRequestId = null;
 
@@ -74,7 +74,7 @@
             setupPeer('host');
             document.getElementById('file-input').addEventListener('change', e => {
                 file = e.target.files[0];
-                log(`Plik: ${file.name}`);
+                log(`Wybrano: ${file.name} (${file.size} B)`);
             });
         }
 
@@ -82,10 +82,11 @@
             document.getElementById('setup').classList.add('hidden');
             document.getElementById('client-ui').classList.remove('hidden');
             setupPeer('client');
+            
             try {
-                // Force update SW
+                // Rejestracja SW
                 const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
-                await reg.update(); 
+                await reg.update();
                 await navigator.serviceWorker.ready;
                 navigator.serviceWorker.addEventListener('message', event => handleSwMessage(event.data));
                 log("Service Worker OK");
@@ -96,25 +97,21 @@
             pc = new RTCPeerConnection(config);
             pc.oniceconnectionstatechange = () => {
                 if(pc.iceConnectionState === 'connected') {
-                    if (role === 'client') document.getElementById('status-text').innerText = "Połączono.";
+                    if (role === 'client') {
+                        document.getElementById('status-text').innerText = "Połączono P2P.";
+                        startVideoPlayback(); // Startujemy odtwarzacz, bo rozmiar już mamy!
+                    }
                 }
             };
 
             if (role === 'host') {
-                // ordered: true is crucial for splitting/joining
                 dataChannel = pc.createDataChannel("p2p-stream", { ordered: true });
                 dataChannel.onmessage = handleHostData;
             } else {
                 pc.ondatachannel = e => {
                     dataChannel = e.channel;
                     dataChannel.onmessage = handleClientData;
-                    // Auto-start handshake
-                    const openHandler = () => {
-                        log("Kanał otwarty. Pytam o plik...");
-                        dataChannel.send(JSON.stringify({type: 'META_REQ'}));
-                    };
-                    if(dataChannel.readyState === 'open') openHandler();
-                    else dataChannel.onopen = openHandler;
+                    dataChannel.onopen = () => log("Kanał P2P gotowy.");
                 };
             }
         }
@@ -123,33 +120,24 @@
         function handleHostData(event) {
             const msg = JSON.parse(event.data);
             
+            // UWAGA: Nie musimy już obsługiwać META_REQ, bo klient zna rozmiar z oferty!
+            // Ale zostawiamy dla wstecznej kompatybilności w razie czego
             if (msg.type === 'META_REQ') {
-                if(!file) return;
-                dataChannel.send(JSON.stringify({ type: 'META_RES', size: file.size }));
+                if(file) dataChannel.send(JSON.stringify({ type: 'META_RES', size: file.size }));
             }
             else if (msg.type === 'READ_REQ') {
                 const reader = new FileReader();
                 reader.onload = e => {
                     const fullBuffer = e.target.result;
-                    // 1. Send Header
-                    dataChannel.send(JSON.stringify({ 
-                        type: 'BATCH_START', 
-                        id: msg.id
-                    }));
-
-                    // 2. Send Chunks
+                    dataChannel.send(JSON.stringify({ type: 'BATCH_START', id: msg.id }));
+                    
                     let offset = 0;
                     while(offset < fullBuffer.byteLength) {
-                        const slice = fullBuffer.slice(offset, offset + CHUNK_MTU);
-                        dataChannel.send(slice);
+                        dataChannel.send(fullBuffer.slice(offset, offset + CHUNK_MTU));
                         offset += CHUNK_MTU;
                     }
 
-                    // 3. Send Footer (To avoid timeout on client)
-                    dataChannel.send(JSON.stringify({ 
-                        type: 'BATCH_DONE', 
-                        id: msg.id
-                    }));
+                    dataChannel.send(JSON.stringify({ type: 'BATCH_DONE', id: msg.id }));
                 };
                 reader.readAsArrayBuffer(file.slice(msg.start, msg.end + 1));
             }
@@ -159,28 +147,19 @@
         function handleClientData(event) {
             const data = event.data;
 
-            // Tekst (Sterowanie)
             if (typeof data === 'string') {
                 const msg = JSON.parse(data);
-                
-                if (msg.type === 'META_RES') {
-                    fileSize = msg.size;
-                    startVideoPlayback();
-                } 
-                else if (msg.type === 'BATCH_START') {
+                if (msg.type === 'BATCH_START') {
                     currentRequestId = msg.id;
                     incomingChunks = [];
                 }
                 else if (msg.type === 'BATCH_DONE') {
-                    // Host skończył wysyłać ten fragment. Sklejamy!
                     if (currentRequestId === msg.id && incomingChunks.length > 0) {
                         const finalBlob = new Blob(incomingChunks);
                         finalBlob.arrayBuffer().then(buffer => {
                             if (navigator.serviceWorker.controller) {
                                 navigator.serviceWorker.controller.postMessage({
-                                    type: 'DATA_CHUNK',
-                                    id: currentRequestId,
-                                    buffer: buffer
+                                    type: 'DATA_CHUNK', id: currentRequestId, buffer: buffer
                                 }, [buffer]);
                             }
                         });
@@ -191,38 +170,43 @@
                 return;
             }
 
-            // Binarka (Kawałki)
-            if (currentRequestId) {
-                incomingChunks.push(data);
-            }
+            if (currentRequestId) incomingChunks.push(data);
         }
 
         function handleSwMessage(msg) {
+            // SW nie powinien już pytać o GET_SIZE, bo mu go daliśmy przy starcie.
+            // Ale jeśli zapyta (np. po restarcie SW), to odpowiadamy.
             if (msg.type === 'GET_SIZE') {
-                const check = setInterval(() => {
-                    if (fileSize > 0) {
-                        clearInterval(check);
-                        if(navigator.serviceWorker.controller)
-                            navigator.serviceWorker.controller.postMessage({ type: 'DATA_CHUNK', id: msg.id, buffer: fileSize });
-                    }
-                }, 100);
+                if(fileSize > 0 && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ 
+                        type: 'SET_META', size: fileSize 
+                    }); // Aktualizujemy cache SW
+                }
             }
             else if (msg.type === 'GET_DATA') {
-                dataChannel.send(JSON.stringify({
-                    type: 'READ_REQ', start: msg.start, end: msg.end, id: msg.id
-                }));
+                // Jeśli kanał nie jest gotowy, ignorujemy lub logujemy błąd
+                if (dataChannel && dataChannel.readyState === 'open') {
+                    dataChannel.send(JSON.stringify({
+                        type: 'READ_REQ', start: msg.start, end: msg.end, id: msg.id
+                    }));
+                } else {
+                    log("Czekaj! P2P jeszcze nie połączone.");
+                }
             }
         }
 
         function startVideoPlayback() {
             document.getElementById('player-box').classList.remove('hidden');
             const video = document.getElementById('video-player');
-            // Random query param to force bypass cache
-            video.src = 'virtual-video.mp4?t=' + Date.now(); 
-            video.load();
+            // Unikamy cache'owania przeglądarki
+            if (!video.src.includes('virtual-video')) {
+                video.src = 'virtual-video.mp4?t=' + Date.now(); 
+                video.load();
+            }
         }
 
-        // --- KRYPTO & HANDSHAKE (Bez zmian) ---
+        // --- KRYPTO & LOGIKA PAKOWANIA METADANYCH W HANDSHAKE ---
+        
         async function getKeys() {
             const pass = document.getElementById('secret-key').value;
             const enc = new TextEncoder();
@@ -250,29 +234,71 @@
                 return new TextDecoder().decode(dec);
             } catch(e) { alert("Złe hasło!"); return ""; }
         }
+
+        // --- NOWY HANDSHAKE Z METADANYMI ---
+
         async function createOffer() {
+            if (!file) return alert("Najpierw wybierz plik!");
+
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
+            
             pc.onicecandidate = async e => {
-                if(!e.candidate) document.getElementById('host-offer-out').value = await encrypt(JSON.stringify(pc.localDescription));
+                if(!e.candidate) {
+                    // TWORZYMY SUPER-PAKIET: SDP + Rozmiar pliku
+                    const payload = {
+                        sdp: pc.localDescription,
+                        meta: { size: file.size, name: file.name }
+                    };
+                    
+                    const encrypted = await encrypt(JSON.stringify(payload));
+                    document.getElementById('host-offer-out').value = encrypted;
+                    log("Oferta wygenerowana (zawiera metadane pliku).");
+                }
             }
         }
+
         async function createAnswer() {
             const txt = document.getElementById('client-offer-in').value;
             if(!txt) return;
-            const desc = JSON.parse(await decrypt(txt));
-            await pc.setRemoteDescription(desc);
+
+            // 1. Odszyfrujemy Super-Pakiet
+            const decryptedJson = await decrypt(txt);
+            if (!decryptedJson) return;
+            
+            const payload = JSON.parse(decryptedJson);
+            
+            // 2. Wyciągamy metadane i ZAPISUJEMY JE OD RAZU
+            fileSize = payload.meta.size;
+            log(`Odebrano ofertę. Plik: ${payload.meta.name}, Rozmiar: ${fileSize}`);
+            
+            // 3. Wysyłamy rozmiar do Service Workera NATYCHMIAST
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SET_META',
+                    size: fileSize
+                });
+                log("Metadane wysłane do SW (Cache).");
+            } else {
+                log("Ostrzeżenie: SW nieaktywny?");
+            }
+
+            // 4. Kontynuujemy WebRTC
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
+            
             pc.onicecandidate = async e => {
                 if(!e.candidate) document.getElementById('client-answer-out').value = await encrypt(JSON.stringify(pc.localDescription));
             }
         }
+
         async function finalizeConnection() {
             const txt = document.getElementById('host-answer-in').value;
             if(!txt) return;
+            // Odpowiedź zawiera tylko SDP (bez meta, bo Host już zna plik)
             const desc = JSON.parse(await decrypt(txt));
-            await pc.setRemoteDescription(desc);
+            await pc.setRemoteDescription(new RTCSessionDescription(desc));
         }
     </script>
 </body>
