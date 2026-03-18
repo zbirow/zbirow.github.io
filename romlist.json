@@ -1,4 +1,5 @@
-{
+[
+ {
  "name": "Atari Jaguar",
  "roms": [
   "Air Cars",
@@ -8179,3 +8180,4 @@
   "Metal Slug 5",
   "Metal Slug X - Super Vehicle-001"
 ]}
+]
