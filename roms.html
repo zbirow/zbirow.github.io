@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rom List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Courier New', 'Lucida Console', Monaco, monospace;
+            color: #b3b3b3;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border: 3px solid #333;
+            border-radius: 0;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.1);
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header, .search-section, .stats-panel, .console-search-section {
+            flex-shrink: 0;
+        }
+
+        /* Vintage scanline effect */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 140, 0, 0.02) 50%, rgba(0, 0, 0, 0.02) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .header {
+            background: #0f0f0f;
+            color: #ff8c00;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #333;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: normal;
+            text-shadow: 3px 3px 0 #330000;
+            font-family: 'Courier New', monospace;
+        }
+
+        .header h1::before {
+            content: ">";
+            margin-right: 15px;
+            color: #ff8c00;
+            animation: blink 1s infinite;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #888;
+            letter-spacing: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .status-bar {
+            background: #0a0a0a;
+            padding: 15px 30px;
+            border-bottom: 2px solid #333;
+            color: #ff8c00;
+            font-size: 0.95em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+        }
+
+        .status-bar span {
+            color: #888;
+        }
+
+        .status-bar .active {
+            color: #ff8c00;
+            background: #1a1a1a;
+            padding: 5px 15px;
+            border: 1px solid #ff8c00;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #1a1a1a;
+            color: #ff8c00;
+            border: 1px solid #ff8c00;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .nav-btn:hover {
+            background: #ff8c00;
+            color: #0f0f0f;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #444;
+            color: #444;
+        }
+
+        .search-section {
+            padding: 20px 30px;
+            background: #151515;
+            border-bottom: 2px solid #333;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #1f1f1f;
+            border: 2px solid #333;
+            padding: 0 20px;
+        }
+
+        .search-box:focus-within {
+            border-color: #ff8c00;
+        }
+
+        .search-box .prompt {
+            color: #ff8c00;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 0;
+            border: none;
+            background: transparent;
+            font-size: 1.1em;
+            outline: none;
+            color: #b3b3b3;
+            font-family: 'Courier New', monospace;
+        }
+
+        .search-box input::placeholder {
+            color: #444;
+        }
+
+        .search-box button {
+            background: #1a1a1a;
+            color: #ff8c00;
+            border: 2px solid #ff8c00;
+            padding: 10px 30px;
+            font-size: 1em;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .search-box button:hover {
+            background: #ff8c00;
+            color: #1a1a1a;
+        }
+
+        .stats-panel {
+            padding: 15px 30px;
+            background: #0f0f0f;
+            border-bottom: 2px solid #333;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            font-size: 0.95em;
+        }
+
+        .stat-item {
+            border-left: 3px solid #ff8c00;
+            padding-left: 15px;
+        }
+
+        .stat-label {
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            color: #ff8c00;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .tabs-section {
+            padding: 0 30px;
+            background: #151515;
+            border-bottom: 2px solid #333;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 20px 0;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            background: #1f1f1f;
+            border: 1px solid #333;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tab:hover {
+            border-color: #ff8c00;
+            color: #ff8c00;
+        }
+
+        .tab.active {
+            background: #ff8c00;
+            color: #0f0f0f;
+            border-color: #ff8c00;
+            font-weight: bold;
+        }
+
+        .content-section {
+            flex: 1;
+            padding: 30px;
+            min-height: 0px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            scrollbar-width: thin;
+            scrollbar-color: #ff8c00 #1f1f1f;
+        }
+
+        /* Vintage scrollbar */
+        .content-section::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .content-section::-webkit-scrollbar-track {
+            background: #1f1f1f;
+        }
+
+        .content-section::-webkit-scrollbar-thumb {
+            background: #ff8c00;
+            border: 2px solid #1f1f1f;
+        }
+
+        .items-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .item-card {
+            background: #151515;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card:hover {
+            border-color: #ff8c00;
+            transform: translateX(5px);
+        }
+
+        .item-card::before {
+            content: ">";
+            position: absolute;
+            left: -15px;
+            color: #ff8c00;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .item-card:hover::before {
+            opacity: 1;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-index {
+            color: #ff8c00;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+
+        .item-name {
+            font-size: 1.3em;
+            color: #b3b3b3;
+            margin-bottom: 10px;
+            word-break: break-word;
+            font-weight: bold;
+        }
+
+        .item-roms {
+            display: inline-block;
+            background: #1f1f1f;
+            border: 1px solid #333;
+            padding: 5px 15px;
+            font-size: 0.85em;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .item-roms:hover {
+            background: #ff8c00;
+            color: #0f0f0f;
+            border-color: #ff8c00;
+        }
+
+        .item-roms.count {
+            border-color: #ff8c00;
+            color: #ff8c00;
+        }
+
+        .item-roms.count:hover {
+            background: #ff8c00;
+            color: #0f0f0f;
+        }
+
+        /* Modal dla ROMs */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 3px solid #ff8c00;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            position: relative;
+            box-shadow: 0 0 50px rgba(255, 140, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #0f0f0f;
+            padding: 20px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #ff8c00;
+            font-size: 1.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal-close {
+            background: none;
+            border: 2px solid #ff8c00;
+            color: #ff8c00;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #ff8c00;
+            color: #0f0f0f;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: calc(80vh - 120px);
+            overflow-y: auto;
+        }
+
+        .roms-list {
+            list-style: none;
+        }
+
+        .rom-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #333;
+            color: #b3b3b3;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+        }
+
+        .rom-item::before {
+            content: "📼";
+            margin-right: 15px;
+            color: #ff8c00;
+        }
+
+        .rom-item:last-child {
+            border-bottom: none;
+        }
+
+        .rom-count-badge {
+            background: #ff8c00;
+            color: #0f0f0f;
+            padding: 3px 10px;
+            margin-left: 15px;
+            font-size: 0.8em;
+        }
+
+        .empty-roms {
+            text-align: center;
+            padding: 40px;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 100px 20px;
+            color: #444;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border: 2px dashed #333;
+        }
+
+        .empty-message::before {
+            content: "[";
+            margin-right: 15px;
+            color: #ff8c00;
+        }
+
+        .empty-message::after {
+            content: "]";
+            margin-left: 15px;
+            color: #ff8c00;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+            padding: 20px 0;
+            border-top: 2px solid #2a2a2a;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            border: 2px solid #333;
+            background: #1f1f1f;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #888;
+            font-family: 'Courier New', monospace;
+            min-width: 40px;
+        }
+
+        .page-btn:hover {
+            border-color: #ff8c00;
+            color: #ff8c00;
+        }
+
+        .page-btn.active {
+            background: #ff8c00;
+            color: #0f0f0f;
+            border-color: #ff8c00;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #444;
+            background: #0f0f0f;
+            border-top: 3px solid #333;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #ff8c00;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ""; }
+            40% { content: "."; }
+            60% { content: ".."; }
+            80%, 100% { content: "..."; }
+        }
+
+        .error {
+            color: #cc0000;
+            text-align: center;
+            padding: 40px;
+            border: 2px solid #cc0000;
+            background: #2a0000;
+        }
+
+        .breadcrumb {
+            padding: 10px 30px;
+            background: #0f0f0f;
+            border-bottom: 1px solid #333;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .breadcrumb span {
+            color: #ff8c00;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 20px;
+            }
+            
+            .tab {
+                white-space: nowrap;
+            }
+            
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>ROM LIST</h1>
+<p>Private Archive</p></div>
+
+<div class="search-section">
+<div class="search-box">
+<input type="text" id="globalSearchInput" placeholder="Global search ROMs..." onkeyup="globalSearchRoms()">
+</div></div>
+
+<div class="stats-panel" id="stats"></div>
+
+<div class="console-search-section" id="consoleSearchSection" style="display: none;">
+<div class="search-box">
+<input type="text" id="consoleSearchInput" placeholder="Search in this console..." onkeyup="consoleSearchRoms()">
+</div></div>
+
+<div class="content-section" id="content">
+<div class="loading">LOADING DATA</div></div></div>
+
+<script>
+const JSON_FILE = 'romlist.json';
+let jsonData = [];
+let currentPage = 1;
+let itemsPerPage = 20;
+let searchResults = [];
+let globalSearchMode = false;
+let consoleSearchMode = false;
+let currentConsoleIndex = -1;
+let currentConsoleData = null;
+const contentDiv = document.getElementById('content');
+const statsDiv = document.getElementById('stats');
+const globalSearchInput = document.getElementById('globalSearchInput');
+const consoleSearchSection = document.getElementById('consoleSearchSection');
+const consoleSearchInput = document.getElementById('consoleSearchInput');
+
+async function loadJSON() {
+try {const response = await fetch(JSON_FILE);
+if (!response.ok) {throw new Error(`can't read ${JSON_FILE}`);}
+const data = await response.json();
+if (!Array.isArray(data)) {jsonData = [data];} else {jsonData = data;} 
+jsonData = jsonData.filter(item => {return item && typeof item === 'object';}); 
+jsonData = jsonData.map(item => {
+if (!item.roms) item.roms = []; return item;});
+handleRouting();
+} catch (error) {showError(`ERROR: ${error.message}`);}}
+
+function handleRouting() {
+const hash = window.location.hash.substring(1);
+if (hash.startsWith('romlist=')) {
+const index = parseInt(hash.replace('romlist=', '')) - 1;
+if (index >= 0 && index < jsonData.length) {
+currentConsoleIndex = index;
+currentConsoleData = jsonData[index];
+showRomsList(jsonData[index], index + 1);
+} else {window.location.hash = ''; showMainList();}} 
+else if (hash.startsWith('globalsearch=')) {
+const query = decodeURIComponent(hash.replace('globalsearch=', ''));
+globalSearchInput.value = query;
+performGlobalSearch(query);
+}
+else if (hash.startsWith('consolesearch=')) {
+const params = hash.replace('consolesearch=', '').split('&');
+const query = decodeURIComponent(params[0]);
+const consoleIdx = parseInt(params[1]) - 1;
+if (consoleIdx >= 0 && consoleIdx < jsonData.length) {
+currentConsoleIndex = consoleIdx;
+currentConsoleData = jsonData[consoleIdx];
+showRomsList(jsonData[consoleIdx], consoleIdx + 1);
+consoleSearchInput.value = query;
+performConsoleSearch(query, jsonData[consoleIdx], consoleIdx + 1);
+}}
+else {showMainList();}}
+
+function showMainList() {
+window.scrollTo(0, 0);
+globalSearchMode = false;
+consoleSearchMode = false;
+currentConsoleIndex = -1;
+currentConsoleData = null;
+globalSearchInput.value = '';
+consoleSearchInput.value = '';
+consoleSearchSection.style.display = 'none';
+updateStats();
+displayItems();
+window.scrollTo({top: 0, behavior: 'instant'});}
+
+function showRomsList(item, index) {
+window.scrollTo(0, 0);
+globalSearchMode = false;
+consoleSearchMode = false;
+currentConsoleIndex = index - 1;
+currentConsoleData = item;
+const name = item.name || '???';
+const roms = item.roms || [];
+consoleSearchSection.style.display = 'block';
+consoleSearchInput.value = '';
+displayRomsList(roms, name, index);
+window.scrollTo({top: 0, behavior: 'instant'});}
+
+function displayRomsList(roms, consoleName, consoleIndex) {
+let html = `<div class="items-list">`;
+roms.forEach((rom, idx) => {
+const safeRom = escapeHtml(rom);
+html += `<div class="item-card">
+<div class="item-info">
+<div class="item-index">[${(idx + 1).toString().padStart(3, '0')}]</div>
+<div class="item-name">${safeRom}</div>
+</div></div>`;});
+html += `</div>`;
+if (roms.length === 0) {
+html = `<div class="empty-message">NO ROM'S</div>`;}
+contentDiv.innerHTML = html;
+updateStatsForRoms(consoleName, roms.length, consoleIndex);}
+
+function updateStatsForRoms(consoleName, romsCount, consoleIndex) {
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">CONSOLE</div><div class="stat-value">${escapeHtml(consoleName)}</div></div>
+<div class="stat-item"><div class="stat-label">ROMS</div><div class="stat-value">${romsCount}</div></div>
+<div class="stat-item"><div class="stat-label">MENU</div><div class="stat-value"><a href="#/" style="color: #ff8c00; text-decoration: none;"><- BACK</a></div></div>`;}
+
+function consoleSearchRoms() {
+if (!currentConsoleData) return;
+const query = consoleSearchInput.value.trim();
+if (query.length < 2) {
+if (consoleSearchMode) {
+consoleSearchMode = false;
+showRomsList(currentConsoleData, currentConsoleIndex + 1);
+}
+return;}
+window.location.hash = `consolesearch=${encodeURIComponent(query)}&${currentConsoleIndex + 1}`;
+performConsoleSearch(query, currentConsoleData, currentConsoleIndex + 1);}
+
+function performConsoleSearch(query, consoleItem, consoleIndex) {
+consoleSearchMode = true;
+const roms = consoleItem.roms || [];
+const consoleName = consoleItem.name || '???';
+const results = roms.filter(rom => rom.toLowerCase().includes(query.toLowerCase()));
+displayConsoleSearchResults(results, query, consoleName, consoleIndex);}
+
+function displayConsoleSearchResults(results, query, consoleName, consoleIndex) {
+if (results.length === 0) {
+contentDiv.innerHTML = `<div class="empty-message">NO RESULTS FOR "${escapeHtml(query)}" IN ${escapeHtml(consoleName)}</div>`;
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">CONSOLE</div><div class="stat-value">${escapeHtml(consoleName)}</div></div>
+<div class="stat-item"><div class="stat-label">RESULTS</div><div class="stat-value">0</div></div>
+<div class="stat-item"><div class="stat-label">MENU</div><div class="stat-value"><a href="#romlist=${consoleIndex}" style="color: #ff8c00; text-decoration: none;"><- BACK TO ROMS</a></div></div>`;
+return;}
+let html = `<div class="items-list">`;
+results.forEach((rom, idx) => {
+const safeRom = escapeHtml(rom);
+html += `<div class="item-card">
+<div class="item-info">
+<div class="item-index">[${(idx + 1).toString().padStart(3, '0')}]</div>
+<div class="item-name">${safeRom}</div>
+</div></div>`;});
+html += `</div>`;
+contentDiv.innerHTML = html;
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">CONSOLE</div><div class="stat-value">${escapeHtml(consoleName)}</div></div>
+<div class="stat-item"><div class="stat-label">RESULTS</div><div class="stat-value">${results.length}</div></div>
+<div class="stat-item"><div class="stat-label">MENU</div><div class="stat-value"><a href="#romlist=${consoleIndex}" style="color: #ff8c00; text-decoration: none;"><- BACK TO ROMS</a></div></div>`;}
+
+function updateStats() {
+const totalItems = jsonData.length;
+const totalRoms = jsonData.reduce((acc, item) => acc + (item.roms ? item.roms.length : 0), 0);
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">CONSOLE</div><div class="stat-value">${totalItems}</div></div>
+<div class="stat-item"><div class="stat-label">ALL ROMS</div><div class="stat-value">${totalRoms}</div></div>`;}
+
+function displayItems() {
+if (jsonData.length === 0) {contentDiv.innerHTML = `<div class="empty-message">NO DATA</div>`;return;}
+const start = (currentPage - 1) * itemsPerPage;
+const end = Math.min(start + itemsPerPage, jsonData.length);
+const itemsToShow = jsonData.slice(start, end);
+let html = '<div class="items-list">';
+itemsToShow.forEach((item, index) => {
+const globalIndex = start + index + 1;
+const name = item.name || '???';
+const romsCount = item.roms ? item.roms.length : 0;
+const romsClass = romsCount > 0 ? 'count' : '';
+const safeName = escapeHtml(name);
+html += `<div class="item-card" onclick="window.location.href='#romlist=${globalIndex}'" style="cursor: pointer;"><div class="item-info"><div class="item-index">[${globalIndex.toString().padStart(3, '0')}]</div><div class="item-name">${safeName}</div><div><span class="item-roms ${romsClass}"><a href="#romlist=${globalIndex}" style="color: inherit; text-decoration: none;">ROMS: ${romsCount}</a></span></div></div></div>`;});
+html += '</div>';
+if (jsonData.length > itemsPerPage) {
+const totalPages = Math.ceil(jsonData.length / itemsPerPage);
+html += '<div class="pagination">';
+for (let i = 1; i <= totalPages; i++) {html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;}
+html += '</div>';}
+contentDiv.innerHTML = html;}
+
+function globalSearchRoms() {
+const query = globalSearchInput.value.trim();
+if (query.length < 2) {
+if (globalSearchMode) {window.location.hash = ''; showMainList();}
+return;}
+window.location.hash = `globalsearch=${encodeURIComponent(query)}`;
+performGlobalSearch(query);}
+
+function performGlobalSearch(query) {
+globalSearchMode = true;
+const results = [];
+jsonData.forEach(item => {
+const name = item.name || '???';
+const roms = item.roms || [];
+roms.forEach(rom => {
+if (rom.toLowerCase().includes(query.toLowerCase())) {
+results.push({console: name, rom: rom, consoleIndex: jsonData.indexOf(item) + 1});}});});
+searchResults = results;
+displayGlobalSearchResults(query);}
+
+function displayGlobalSearchResults(query) {
+if (searchResults.length === 0) {
+contentDiv.innerHTML = `<div class="empty-message">NO RESULTS FOR "${escapeHtml(query)}"</div>`;
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">RESULTS</div><div class="stat-value">0</div></div>
+<div class="stat-item"><div class="stat-label">SEARCH</div><div class="stat-value">"${escapeHtml(query)}"</div></div>
+<div class="stat-item"><div class="stat-label">MENU</div><div class="stat-value"><a href="#/" style="color: #ff8c00; text-decoration: none;"><- BACK</a></div></div>`;
+return;}
+let html = '<div class="items-list">';
+searchResults.forEach((result, index) => {
+const safeRom = escapeHtml(result.rom);
+const safeConsole = escapeHtml(result.console);
+html += `<div class="item-card">
+<div class="item-info">
+<div class="item-index">[${(index + 1).toString().padStart(3, '0')}]</div>
+<div class="item-name">${safeRom}</div>
+<div class="item-console">${safeConsole}</div>
+</div></div>`;});
+html += '</div>';
+contentDiv.innerHTML = html;
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">RESULTS</div><div class="stat-value">${searchResults.length}</div></div>
+<div class="stat-item"><div class="stat-label">SEARCH</div><div class="stat-value">"${escapeHtml(query)}"</div></div>
+<div class="stat-item"><div class="stat-label">MENU</div><div class="stat-value"><a href="#/" style="color: #ff8c00; text-decoration: none;"><- BACK</a></div></div>`;}
+
+function goToPage(page) {currentPage = page;displayItems();}
+
+function escapeHtml(text) {
+if (!text) return '';
+const div = document.createElement('div');
+div.textContent = text;
+return div.innerHTML;}
+
+function showError(message) {
+contentDiv.innerHTML = `<div class="error">${message}<br><br>No found ${JSON_FILE} in the same directory</div>`;
+statsDiv.innerHTML = `<div class="stat-item"><div class="stat-label">STATUS</div><div class="stat-value" style="color: #cc0000;">ERROR</div></div>`;}
+
+window.addEventListener('hashchange', handleRouting);
+loadJSON();
+</script>
+</body>
+</html>
